@@ -528,6 +528,11 @@ foreach ($picRows as $picRow) {
 
 $stakeholderDefinitions = [
     [
+        'label' => 'Admin',
+        'aliases' => ['Admin'],
+        'default_role' => 'Administrasi dan koordinasi PMO',
+    ],
+    [
         'label' => 'DISHUB',
         'aliases' => ['DISHUB'],
         'default_role' => 'Project sponsor dan regulator kebijakan tarif',
@@ -538,14 +543,24 @@ $stakeholderDefinitions = [
         'default_role' => 'Lead integrasi sistem dan koordinasi implementasi',
     ],
     [
-        'label' => 'PTO',
-        'aliases' => ['PTO'],
-        'default_role' => 'Kesiapan operasional, settlement, dan deployment lapangan',
-    ],
-    [
-        'label' => 'TransJakarta',
+        'label' => 'TJ',
         'aliases' => ['TransJakarta', 'TJ'],
         'default_role' => 'Operator utama dan penyedia data fare matrix',
+    ],
+    [
+        'label' => 'LRTJ',
+        'aliases' => ['LRTJ', 'LRT Jakarta'],
+        'default_role' => 'Kesiapan layanan LRT Jakarta dan integrasi operasional',
+    ],
+    [
+        'label' => 'MRTJ',
+        'aliases' => ['MRTJ', 'MRT Jakarta'],
+        'default_role' => 'Kesiapan layanan MRT Jakarta dan integrasi operasional',
+    ],
+    [
+        'label' => 'JPAI/Jatelindo',
+        'aliases' => ['JPAI', 'Jatelindo'],
+        'default_role' => 'Mitra strategis atau vendor pendukung implementasi',
     ],
 ];
 
@@ -1184,6 +1199,31 @@ $dashboardRows = [
         50
     ),
 ];
+
+/* PTO adalah kelompok operator, bukan PIC yang dapat ditindaklanjuti. */
+$dashboardPicMappings = [
+    'PTO' => 'TJ, LRTJ, MRTJ',
+    'JLI & PTO' => 'JLI, TJ, LRTJ, MRTJ',
+    'JLI, PTO. DISHUB' => 'JLI, TJ, LRTJ, MRTJ, DISHUB',
+    'PTO & JLI' => 'TJ, LRTJ, MRTJ, JLI',
+    'DISHUB & PTO' => 'DISHUB, TJ, LRTJ, MRTJ',
+    'DISHUB, PTO, JLI' => 'DISHUB, TJ, LRTJ, MRTJ, JLI',
+    'DISHUB, PTO' => 'DISHUB, TJ, LRTJ, MRTJ',
+    'PTO, JLI' => 'TJ, LRTJ, MRTJ, JLI',
+    'DISHUB, MRT, JLI' => 'DISHUB, MRTJ, JLI',
+    'DISHUB, TJ,' => 'DISHUB, TJ',
+];
+
+foreach ($dashboardRows as &$dashboardRow) {
+    $dashboardRow['pic'] = $dashboardPicMappings[(string) $dashboardRow['pic']]
+        ?? (string) $dashboardRow['pic'];
+    $dashboardRow['activity'] = str_replace(
+        'PTO',
+        'operator transportasi publik (TJ, LRTJ, MRTJ)',
+        (string) $dashboardRow['activity']
+    );
+}
+unset($dashboardRow);
 
 /*
 |--------------------------------------------------------------------------

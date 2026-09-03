@@ -100,7 +100,7 @@ require __DIR__ . '/includes/header.php';
                     <label class="form-field form-field--full">
                         <span>Nama Person / PIC</span>
                         <input type="text" name="person_name" value="<?= htmlspecialchars($formData['person_name'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Contoh: Davy Julian">
-                        <small class="form-helper">Isi nama orang jika entri ini mewakili instansi seperti DISHUB, JLI, atau PTO.</small>
+                        <small class="form-helper">Isi nama orang jika entri ini mewakili instansi seperti DISHUB, TJ, LRTJ, MRTJ, JLI, atau JPAI/Jatelindo.</small>
                     </label>
                     <label class="form-field form-field--full">
                         <span>Peran / Unit</span>

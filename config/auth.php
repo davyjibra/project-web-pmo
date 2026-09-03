@@ -279,11 +279,11 @@ const DEMO_USERS = [
         ],
     ],
 
-    'pto' => [
-        'password' => 'PTOTarif2026!',
-        'name' => 'PIC PTO',
-        'role' => 'Editor PTO',
-        'organization' => 'PTO',
+    'lrtj' => [
+        'password' => 'LRTJTarif2026!',
+        'name' => 'PIC LRT Jakarta',
+        'role' => 'Editor LRTJ',
+        'organization' => 'LRTJ',
         'view_only' => false,
         'modules' => [
             'tasks',
@@ -292,7 +292,44 @@ const DEMO_USERS = [
             'risks',
         ],
         'scope_keywords' => [
-            'PTO',
+            'LRTJ',
+            'LRT Jakarta',
+        ],
+    ],
+
+    'mrtj' => [
+        'password' => 'MRTJTarif2026!',
+        'name' => 'PIC MRT Jakarta',
+        'role' => 'Editor MRTJ',
+        'organization' => 'MRTJ',
+        'view_only' => false,
+        'modules' => [
+            'tasks',
+            'milestones',
+            'issues',
+            'risks',
+        ],
+        'scope_keywords' => [
+            'MRTJ',
+            'MRT Jakarta',
+        ],
+    ],
+
+    'jpai' => [
+        'password' => 'JPAITarif2026!',
+        'name' => 'PIC JPAI/Jatelindo',
+        'role' => 'Editor JPAI/Jatelindo',
+        'organization' => 'JPAI/Jatelindo',
+        'view_only' => false,
+        'modules' => [
+            'tasks',
+            'milestones',
+            'issues',
+            'risks',
+        ],
+        'scope_keywords' => [
+            'JPAI',
+            'Jatelindo',
         ],
     ],
 ];
@@ -636,7 +673,10 @@ function isAuthenticated(): bool
 
 function requireAuthentication(): void
 {
-    if (!isAuthenticated()) {
+    $username = strtolower(trim((string) ($_SESSION['user']['username'] ?? '')));
+
+    if (!isAuthenticated() || !isset(DEMO_USERS[$username])) {
+        unset($_SESSION['user']);
         header('Location: /login');
         exit;
     }

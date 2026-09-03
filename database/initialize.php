@@ -241,6 +241,82 @@ $pdo->exec(
 
 /*
 |--------------------------------------------------------------------------
+| NORMALISASI PIC OPERATOR
+|--------------------------------------------------------------------------
+|
+| PTO adalah kelompok operator, bukan PIC. Data lama dimigrasikan ke
+| instansi spesifik agar pihak yang perlu ditindaklanjuti terlihat jelas.
+|
+*/
+
+$standardPicEntries = [
+    ['Admin', 'Admin PMO', 'Administrator PMO'],
+    ['DISHUB', null, 'Regulator / Project Sponsor'],
+    ['TJ', null, 'TransJakarta / Operator Utama'],
+    ['LRTJ', null, 'LRT Jakarta / Operator'],
+    ['MRTJ', null, 'MRT Jakarta / Operator'],
+    ['JLI', null, 'JakLingko Indonesia'],
+    ['JPAI/Jatelindo', null, 'Mitra strategis / vendor'],
+];
+
+$insertStandardPic = $pdo->prepare(
+    'INSERT OR IGNORE INTO pics (
+        name, person_name, role_label, created_at, updated_at
+    ) VALUES (
+        :name, :person_name, :role_label, :created_at, :updated_at
+    )'
+);
+
+$picTimestamp = date('Y-m-d H:i:s');
+foreach ($standardPicEntries as [$name, $personName, $roleLabel]) {
+    $insertStandardPic->execute([
+        ':name' => $name,
+        ':person_name' => $personName,
+        ':role_label' => $roleLabel,
+        ':created_at' => $picTimestamp,
+        ':updated_at' => $picTimestamp,
+    ]);
+}
+
+$legacyPicMappings = [
+    'PTO' => 'TJ, LRTJ, MRTJ',
+    'JLI & PTO' => 'JLI, TJ, LRTJ, MRTJ',
+    'JLI, PTO. DISHUB' => 'JLI, TJ, LRTJ, MRTJ, DISHUB',
+    'PTO & JLI' => 'TJ, LRTJ, MRTJ, JLI',
+    'DISHUB & PTO' => 'DISHUB, TJ, LRTJ, MRTJ',
+    'DISHUB, PTO, JLI' => 'DISHUB, TJ, LRTJ, MRTJ, JLI',
+    'DISHUB, PTO' => 'DISHUB, TJ, LRTJ, MRTJ',
+    'PTO, JLI' => 'TJ, LRTJ, MRTJ, JLI',
+];
+
+foreach ($legacyPicMappings as $legacyPic => $replacementPic) {
+    foreach (['tasks', 'milestones', 'issue_logs'] as $tableName) {
+        $statement = $pdo->prepare(
+            'UPDATE ' . $tableName . ' SET pic = :replacement WHERE pic = :legacy'
+        );
+        $statement->execute([
+            ':replacement' => $replacementPic,
+            ':legacy' => $legacyPic,
+        ]);
+    }
+
+    $riskStatement = $pdo->prepare(
+        'UPDATE risks SET owner = :replacement WHERE owner = :legacy'
+    );
+    $riskStatement->execute([
+        ':replacement' => $replacementPic,
+        ':legacy' => $legacyPic,
+    ]);
+}
+
+$deleteLegacyPic = $pdo->prepare('DELETE FROM pics WHERE name = :name');
+foreach (array_keys($legacyPicMappings) as $legacyPic) {
+    $deleteLegacyPic->execute([':name' => $legacyPic]);
+}
+
+
+/*
+|--------------------------------------------------------------------------
 | HELPER: EXCEL SERIAL DATE
 |--------------------------------------------------------------------------
 */
@@ -1115,6 +1191,49 @@ if ($enableDemoSeed && $issueLogCount === 0) {
             ':updated_at' => $timestamp,
         ]);
     }
+}
+
+
+/* Jalankan ulang normalisasi setelah data seed agar tidak ada PIC PTO baru. */
+foreach ($legacyPicMappings as $legacyPic => $replacementPic) {
+    foreach (['tasks', 'milestones', 'issue_logs'] as $tableName) {
+        $statement = $pdo->prepare(
+            'UPDATE ' . $tableName . ' SET pic = :replacement WHERE pic = :legacy'
+        );
+        $statement->execute([
+            ':replacement' => $replacementPic,
+            ':legacy' => $legacyPic,
+        ]);
+    }
+
+    $riskStatement = $pdo->prepare(
+        'UPDATE risks SET owner = :replacement WHERE owner = :legacy'
+    );
+    $riskStatement->execute([
+        ':replacement' => $replacementPic,
+        ':legacy' => $legacyPic,
+    ]);
+}
+
+// PTO hanya boleh muncul sebagai penjelasan konsep, bukan nama pihak pada data.
+$operatorLabel = 'operator transportasi publik (TJ, LRTJ, MRTJ)';
+foreach ([
+    ['tasks', 'name'],
+    ['tasks', 'notes'],
+    ['milestones', 'name'],
+    ['risks', 'title'],
+    ['risks', 'mitigation'],
+    ['issue_logs', 'description'],
+] as [$tableName, $columnName]) {
+    $pdo->prepare(
+        'UPDATE ' . $tableName . '
+         SET ' . $columnName . ' = REPLACE(' . $columnName . ', \'PTO\', :operator_label)
+         WHERE ' . $columnName . ' LIKE \'%PTO%\''
+    )->execute([':operator_label' => $operatorLabel]);
+}
+
+foreach (array_keys($legacyPicMappings) as $legacyPic) {
+    $deleteLegacyPic->execute([':name' => $legacyPic]);
 }
 
 

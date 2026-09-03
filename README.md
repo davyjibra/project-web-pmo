@@ -4,7 +4,7 @@ Dashboard ini dibuat untuk monitoring project implementasi kenaikan tarif TransJ
 
 ## Fitur Utama
 
-- Multi-user login dengan role `Administrator`, `View Only`, dan editor scoped per instansi seperti `JLI`, `TJ`, `DISHUB`, dan `PTO`.
+- Multi-user login dengan role `Administrator`, `View Only`, dan editor scoped per instansi `DISHUB`, `TJ`, `LRTJ`, `MRTJ`, `JLI`, serta `JPAI/Jatelindo`.
 - Dashboard berbasis tab dengan halaman utama yang disusun seperti briefing eksekutif.
 - CRUD lengkap untuk kegiatan, milestone, risiko, roadmap, matriks RACI, issue log, dan master PIC.
 - Master PIC terpusat dengan dropdown agar nama penanggung jawab konsisten.
@@ -47,8 +47,12 @@ Gunakan akun berikut untuk pengujian:
   Edit data sesuai scope `TransJakarta / TJ`.
 - `dishub` / `DishubTarif2026!`
   Edit data sesuai scope `DISHUB`.
-- `pto` / `PTOTarif2026!`
-  Edit data sesuai scope `PTO`.
+- `lrtj` / `LRTJTarif2026!`
+  Edit data sesuai scope `LRTJ`.
+- `mrtj` / `MRTJTarif2026!`
+  Edit data sesuai scope `MRTJ`.
+- `jpai` / `JPAITarif2026!`
+  Edit data sesuai scope `JPAI/Jatelindo`.
 
 ## Menjalankan Lokal
 
@@ -124,7 +128,9 @@ Contoh:
 - akun `jli` hanya bisa mengubah data yang terkait `JLI`
 - akun `tj` hanya bisa mengubah data yang terkait `TJ` atau `TransJakarta`
 - akun `dishub` hanya bisa mengubah data yang terkait `DISHUB`
-- akun `pto` hanya bisa mengubah data yang terkait `PTO`
+- akun `lrtj` hanya bisa mengubah data yang terkait `LRTJ`
+- akun `mrtj` hanya bisa mengubah data yang terkait `MRTJ`
+- akun `jpai` hanya bisa mengubah data yang terkait `JPAI/Jatelindo`
 
 ## Master PIC
 
@@ -142,7 +148,7 @@ Field penting pada master PIC:
 - `Nama Person / PIC`
 - `Peran / Unit`
 
-Dengan struktur ini, dashboard tidak hanya menampilkan `JLI / PTO / DISHUB`, tetapi juga bisa menunjukkan siapa nama PIC orangnya.
+PTO hanya dipakai sebagai istilah kelompok operator transportasi publik. Pada PIC dan dashboard, pihak yang ditampilkan selalu spesifik: `Admin`, `DISHUB`, `TJ`, `LRTJ`, `MRTJ`, `JLI`, atau `JPAI/Jatelindo`.
 
 ## Hosting cPanel / Hostinger
 
