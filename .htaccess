@@ -1,0 +1,41 @@
+Options -Indexes
+
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteRule ^login/?$ /login/index.php [L,QSA]
+RewriteRule ^logout/?$ /logout/index.php [L,QSA]
+RewriteRule ^tasks/create/?$ /tasks/create/index.php [L,QSA]
+RewriteRule ^tasks/edit/?$ /tasks/edit/index.php [L,QSA]
+RewriteRule ^tasks/delete/?$ /tasks/delete/index.php [L,QSA]
+RewriteRule ^milestones/create/?$ /milestones/create/index.php [L,QSA]
+RewriteRule ^milestones/edit/?$ /milestones/edit/index.php [L,QSA]
+RewriteRule ^milestones/delete/?$ /milestones/delete/index.php [L,QSA]
+RewriteRule ^risks/create/?$ /risks/create/index.php [L,QSA]
+RewriteRule ^risks/edit/?$ /risks/edit/index.php [L,QSA]
+RewriteRule ^risks/delete/?$ /risks/delete/index.php [L,QSA]
+RewriteRule ^issues/create/?$ /issues/create/index.php [L,QSA]
+RewriteRule ^issues/edit/?$ /issues/edit/index.php [L,QSA]
+RewriteRule ^issues/delete/?$ /issues/delete/index.php [L,QSA]
+RewriteRule ^roadmaps/create/?$ /roadmaps/create/index.php [L,QSA]
+RewriteRule ^roadmaps/edit/?$ /roadmaps/edit/index.php [L,QSA]
+RewriteRule ^roadmaps/delete/?$ /roadmaps/delete/index.php [L,QSA]
+RewriteRule ^raci/create/?$ /raci/create/index.php [L,QSA]
+RewriteRule ^raci/edit/?$ /raci/edit/index.php [L,QSA]
+RewriteRule ^raci/delete/?$ /raci/delete/index.php [L,QSA]
+RewriteRule ^pics/create/?$ /pics/create/index.php [L,QSA]
+RewriteRule ^pics/edit/?$ /pics/edit/index.php [L,QSA]
+RewriteRule ^pics/delete/?$ /pics/delete/index.php [L,QSA]
+RewriteRule ^reports/export/?$ /reports/export/index.php [L,QSA]
+RewriteRule ^system/check/?$ /system/check/index.php [L,QSA]
+</IfModule>
+
+<FilesMatch "^(check-hosting|create-(issue|milestone|pic|raci|risk|roadmap|task)|edit-(issue|milestone|pic|raci|risk|roadmap|task)|delete-(issue|milestone|pic|raci|risk|roadmap|task)|export-report|login|logout)\.php$">
+Require all denied
+</FilesMatch>
