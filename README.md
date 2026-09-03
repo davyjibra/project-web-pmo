@@ -78,6 +78,8 @@ Tab utama yang tersedia:
 
 Halaman utama `Ringkasan Tarif TJ` dirancang sebagai satu layar ringkasan untuk rapat pimpinan. Fokusnya adalah progres keseluruhan, komposisi kondisi per area kerja, dan arti status agar keputusan dapat diambil tanpa membuka tabel detail.
 
+Grafik donut, kategori status, dan area kerja dapat diarahkan kursor untuk melihat ringkasan singkat, lalu diklik untuk membuka detail aktivitas, progres, dan PIC dalam dialog tanpa menambah panjang halaman dashboard.
+
 - `Status Project`
 - `Target Terdekat`
 - `PIC & Tanggung Jawab Utama`

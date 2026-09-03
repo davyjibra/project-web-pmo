@@ -422,9 +422,26 @@ document.addEventListener('DOMContentLoaded', function () {
     var dashboardDetailSummary = document.querySelector(
         '[data-dashboard-detail-summary]'
     );
-    var dashboardDetailClose = document.querySelector(
+    var dashboardDetailCloseButtons = document.querySelectorAll(
         '[data-dashboard-detail-close]'
     );
+    var lastDashboardDetailTrigger = null;
+
+    function closeDashboardDetail() {
+        if (!dashboardDetail) {
+            return;
+        }
+
+        dashboardDetail.hidden = true;
+
+        dashboardDetailTriggers.forEach(function (trigger) {
+            trigger.setAttribute('aria-pressed', 'false');
+        });
+
+        if (lastDashboardDetailTrigger) {
+            lastDashboardDetailTrigger.focus();
+        }
+    }
 
     function showDashboardDetail(filter, label) {
         if (!dashboardDetail) {
@@ -432,15 +449,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         var visibleCount = 0;
+        var isAllFilter = filter === 'all';
         var isStreamFilter = filter.indexOf('stream:') === 0;
         var filterValue = isStreamFilter
             ? filter.substring(7)
             : filter;
 
         dashboardDetailRows.forEach(function (row) {
-            var isVisible = isStreamFilter
+            var isVisible = isAllFilter || (isStreamFilter
                 ? row.getAttribute('data-stream') === filterValue
-                : row.getAttribute('data-status') === filterValue;
+                : row.getAttribute('data-status') === filterValue);
 
             row.hidden = !isVisible;
 
@@ -478,26 +496,27 @@ document.addEventListener('DOMContentLoaded', function () {
     dashboardDetailTriggers.forEach(function (trigger) {
         trigger.addEventListener('click', function () {
             var filter = trigger.getAttribute('data-dashboard-detail-trigger') || '';
+            lastDashboardDetailTrigger = trigger;
             var labelElement = trigger.querySelector('span:not(.traffic-dot)');
-            var label = labelElement
+            var label = trigger.getAttribute('data-dashboard-detail-label') || (labelElement
                 ? labelElement.textContent.trim()
-                : 'Detail aktivitas';
+                : 'Detail aktivitas');
 
             showDashboardDetail(filter, label);
         });
     });
 
-    if (dashboardDetailClose) {
-        dashboardDetailClose.addEventListener('click', function () {
-            if (dashboardDetail) {
-                dashboardDetail.hidden = true;
-            }
-
-            dashboardDetailTriggers.forEach(function (trigger) {
-                trigger.setAttribute('aria-pressed', 'false');
-            });
+    dashboardDetailCloseButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            closeDashboardDetail();
         });
-    }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && dashboardDetail && !dashboardDetail.hidden) {
+            closeDashboardDetail();
+        }
+    });
 
     /*
     |--------------------------------------------------------------------------

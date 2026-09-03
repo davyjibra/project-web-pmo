@@ -1482,7 +1482,7 @@ require __DIR__ . '/includes/sidebar.php';
                         <div>
                             <p class="dashboard-chart-card__eyebrow">Ringkasan Eksekutif</p>
                             <h3 id="highLevelDashboardTitle" class="panel__title">Kondisi Implementasi Tarif TJ</h3>
-                            <p class="section-subtitle">Klik kategori pada grafik untuk melihat aktivitas, persentase progres, dan PIC terkait.</p>
+                            <p class="section-subtitle">Arahkan kursor untuk ringkasan, lalu klik grafik atau kategori untuk melihat detail aktivitas dan PIC.</p>
                         </div>
                         <div class="high-level-dashboard__progress">
                             <span>Progres keseluruhan</span>
@@ -1491,12 +1491,21 @@ require __DIR__ . '/includes/sidebar.php';
                     </div>
 
                     <div class="high-level-dashboard__content">
-                        <div class="traffic-pie" style="--traffic-pie: conic-gradient(<?= e($trafficGradient); ?>);" aria-label="Komposisi status seluruh aktivitas">
+                        <button
+                            type="button"
+                            class="traffic-pie traffic-pie--interactive"
+                            style="--traffic-pie: conic-gradient(<?= e($trafficGradient); ?>);"
+                            data-dashboard-detail-trigger="all"
+                            data-dashboard-detail-label="Seluruh aktivitas"
+                            data-tooltip="Klik untuk melihat seluruh aktivitas, progres, dan PIC"
+                            aria-controls="dashboardStatusDetail"
+                            aria-label="Komposisi status seluruh aktivitas. Klik untuk melihat detail."
+                        >
                             <div class="traffic-pie__center">
                                 <strong><?= e((string) $totalActivities); ?></strong>
                                 <span>aktivitas</span>
                             </div>
-                        </div>
+                        </button>
 
                         <div class="traffic-pie__legend" aria-label="Pilih detail status">
                             <?php foreach ($trafficStatusOrder as $status): ?>
@@ -1510,6 +1519,8 @@ require __DIR__ . '/includes/sidebar.php';
                                     type="button"
                                     class="traffic-pie__legend-button traffic-pie__legend-button--<?= e($status); ?>"
                                     data-dashboard-detail-trigger="<?= e($status); ?>"
+                                    data-dashboard-detail-label="<?= e($meta['label']); ?>"
+                                    data-tooltip="<?= e((string) $statusCounts[$status]); ?> aktivitas | Klik untuk melihat PIC dan progres"
                                     aria-controls="dashboardStatusDetail"
                                 >
                                     <span class="traffic-dot <?= e($meta['dot_class']); ?>" aria-hidden="true"></span>
@@ -1532,6 +1543,8 @@ require __DIR__ . '/includes/sidebar.php';
                                     type="button"
                                     class="area-health-card"
                                     data-dashboard-detail-trigger="stream:<?= e($stream); ?>"
+                                    data-dashboard-detail-label="<?= e($stream); ?>"
+                                    data-tooltip="<?= e((string) $stats['total']); ?> aktivitas | Klik untuk melihat PIC dan progres"
                                     aria-controls="dashboardStatusDetail"
                                 >
                                     <span><?= e($stream); ?></span>
@@ -1543,14 +1556,20 @@ require __DIR__ . '/includes/sidebar.php';
                     </div>
                 </section>
 
-                <section id="dashboardStatusDetail" class="dashboard-drilldown" hidden aria-live="polite">
+                <section
+                    id="dashboardStatusDetail"
+                    class="dashboard-drilldown"
+                    hidden
+                    aria-live="polite"
+                    aria-labelledby="dashboardDetailTitle"
+                >
                     <div class="dashboard-drilldown__header">
                         <div>
                             <p class="dashboard-chart-card__eyebrow">Detail Ringkasan</p>
-                            <h3 class="panel__title" data-dashboard-detail-title>Detail aktivitas</h3>
+                            <h3 id="dashboardDetailTitle" class="panel__title" data-dashboard-detail-title>Detail aktivitas</h3>
                             <p class="section-subtitle" data-dashboard-detail-summary></p>
                         </div>
-                        <button type="button" class="dashboard-drilldown__close" data-dashboard-detail-close>Tutup detail</button>
+                        <button type="button" class="dashboard-drilldown__close" data-dashboard-detail-close>Tutup</button>
                     </div>
                     <div class="dashboard-drilldown__list">
                         <?php foreach ($dashboardRows as $row): ?>

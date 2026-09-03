@@ -1798,7 +1798,7 @@ tbody tr:hover {
    ======================================================================== */
 
 .dashboard-page .dashboard {
-    gap: 24px;
+    gap: 16px;
 }
 
 .dashboard-summary-strip--legacy,
@@ -2008,6 +2008,166 @@ tbody tr:hover {
 .dashboard-detail-card p,
 .dashboard-detail-card small {
     margin: 0;
+}
+
+/* Dashboard eksekutif: ringkas di layar, detail tersedia saat diminta. */
+.dashboard-page .topbar {
+    padding: 20px 26px;
+}
+
+.dashboard-page .topbar__heading > p:last-child {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.high-level-dashboard {
+    padding: 18px;
+}
+
+.high-level-dashboard__intro {
+    gap: 16px;
+}
+
+.high-level-dashboard__intro .panel__title {
+    font-size: 1.15rem;
+}
+
+.high-level-dashboard__progress {
+    min-width: 128px;
+    padding: 8px 11px;
+}
+
+.high-level-dashboard__progress strong {
+    font-size: 1.25rem;
+}
+
+.high-level-dashboard__content {
+    grid-template-columns: 142px minmax(250px, 1fr) minmax(190px, 0.7fr);
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.traffic-pie--interactive {
+    position: relative;
+    width: 142px;
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.traffic-pie--interactive:hover,
+.traffic-pie--interactive:focus-visible {
+    outline: none;
+    transform: scale(1.035);
+    box-shadow: inset 0 0 0 1px rgba(23, 50, 74, 0.06), 0 12px 22px rgba(18, 37, 56, 0.12);
+}
+
+.traffic-pie__center {
+    width: 92px;
+}
+
+.traffic-pie__center strong {
+    font-size: 1.35rem;
+}
+
+.traffic-pie__legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.traffic-pie__legend-button {
+    min-height: 48px;
+    padding: 8px;
+}
+
+.traffic-pie__legend-button small {
+    display: none;
+}
+
+.traffic-pie__legend-button b {
+    font-size: 0.8rem;
+}
+
+.high-level-dashboard__areas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.area-health-card {
+    min-height: 59px;
+    padding: 8px 10px;
+}
+
+.area-health-card strong {
+    font-size: 0.84rem;
+}
+
+.area-health-card small {
+    display: none;
+}
+
+.traffic-pie--interactive[data-tooltip],
+.traffic-pie__legend-button[data-tooltip],
+.area-health-card[data-tooltip] {
+    position: relative;
+}
+
+.traffic-pie--interactive[data-tooltip]::after,
+.traffic-pie__legend-button[data-tooltip]::after,
+.area-health-card[data-tooltip]::after {
+    position: absolute;
+    z-index: 4;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    width: max-content;
+    max-width: 220px;
+    padding: 7px 9px;
+    border-radius: 8px;
+    background: #17324a;
+    color: #fff;
+    content: attr(data-tooltip);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.35;
+    opacity: 0;
+    pointer-events: none;
+    text-align: center;
+    transform: translate(-50%, 4px);
+    transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.traffic-pie--interactive[data-tooltip]::after {
+    bottom: auto;
+    top: calc(100% + 10px);
+}
+
+.traffic-pie--interactive:hover::after,
+.traffic-pie--interactive:focus-visible::after,
+.traffic-pie__legend-button:hover::after,
+.traffic-pie__legend-button:focus-visible::after,
+.area-health-card:hover::after,
+.area-health-card:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.dashboard-drilldown {
+    position: relative;
+    margin-top: 12px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.dashboard-drilldown__list {
+    max-height: 270px;
+    margin-top: 12px;
+    padding-right: 4px;
+    overflow: auto;
 }
 
 .dashboard-detail-card h4 {
