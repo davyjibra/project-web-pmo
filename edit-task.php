@@ -388,9 +388,11 @@ require __DIR__ . '/includes/header.php';
                             Simpan Perubahan
                         </button>
 
+                        <?php if (canManageModule('*')): ?>
                         <a href="/pics/create" class="action-button">
                             Tambah PIC Baru
                         </a>
+                        <?php endif; ?>
 
                         <a href="/#bisnis-operasional" class="action-button">
                             Batal

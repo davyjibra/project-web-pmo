@@ -80,7 +80,7 @@ if ($activeSidebarId === '' && $sidebarNavigationItems !== []) {
         <div>
 
             <p class="sidebar__eyebrow">
-                Project Room
+                Ruang Proyek
             </p>
 
             <h1 class="sidebar__company">

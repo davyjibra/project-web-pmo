@@ -863,14 +863,23 @@ function userCanAccessValue(string $value): bool
         return true;
     }
 
+    $normalizedValue = strtolower(trim($value));
+    $scopeTokens = preg_split('/[,;&.\/]+/', $normalizedValue) ?: [];
+    $scopeTokens = array_values(array_filter(array_map(
+        static fn (string $token): string => trim($token),
+        $scopeTokens
+    )));
+
     foreach ($keywords as $keyword) {
+        $normalizedKeyword = strtolower(trim((string) $keyword));
+
+        if ($normalizedKeyword === '') {
+            continue;
+        }
+
         if (
-            $keyword !== ''
-            &&
-            stripos(
-                $value,
-                (string) $keyword
-            ) !== false
+            $normalizedValue === $normalizedKeyword
+            || in_array($normalizedKeyword, $scopeTokens, true)
         ) {
             return true;
         }

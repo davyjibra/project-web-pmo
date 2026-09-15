@@ -226,7 +226,9 @@ require __DIR__ . '/includes/header.php';
                     </label>
                     <div class="form-actions">
                         <button type="submit" class="action-button action-button--primary">Simpan Kegiatan</button>
+                        <?php if (canManageModule('*')): ?>
                         <a href="/pics/create" class="action-button">Tambah PIC Baru</a>
+                        <?php endif; ?>
                         <a href="/#bisnis-operasional" class="action-button">Lihat Daftar Kegiatan</a>
                     </div>
                 </form>

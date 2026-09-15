@@ -395,6 +395,7 @@ $canManagePics = canManageModule('pics');
 $canManageIssues = canManageModule('issues');
 $canExportReports = canManageModule('*');
 $canUseAdminUtilities = canManageModule('*') || $canManagePics;
+$isAdministrator = canManageModule('*');
 
 $dueSoonTasks = 0;
 foreach ($tasks as $task) {
@@ -458,32 +459,32 @@ $executiveSummaryCards = [
 $navigationItems = [
     [
         'id' => 'dashboard',
-        'label' => 'Dashboard',
+        'label' => 'Ringkasan Proyek',
         'description' => 'Ringkasan grafik dan tabel status implementasi perubahan tarif TransJakarta.',
     ],
     [
         'id' => 'peta-jalan',
-        'label' => 'Executive Roadmap',
+        'label' => 'Peta Jalan Eksekutif',
         'description' => 'Tahapan eksekutif implementasi kenaikan tarif berdasarkan roadmap proyek.',
     ],
     [
         'id' => 'linimasa-teknis',
-        'label' => 'Timeline Teknis',
+        'label' => 'Linimasa Teknis',
         'description' => 'FSD, development, SIT, UAT, PTR, dan deployment implementasi tarif TJ.',
     ],
     [
         'id' => 'bisnis-operasional',
-        'label' => 'Timeline Bisnis & Nonteknis',
+        'label' => 'Linimasa Bisnis & Nonteknis',
         'description' => 'BRD, governance, kebijakan, kesiapan operator, komunikasi, dan RACI project tarif TJ.',
     ],
     [
         'id' => 'daftar-risiko',
-        'label' => 'Risk Register',
-        'description' => 'Risk Register dan Issue Log utama project kenaikan tarif TransJakarta.',
+        'label' => 'Daftar Risiko',
+        'description' => 'Daftar risiko dan log isu utama project kenaikan tarif TransJakarta.',
     ],
 ];
 
-$pageTitle = 'Dashboard PMO | Kenaikan Tarif TJ';
+$pageTitle = 'Ringkasan Proyek PMO | Kenaikan Tarif TJ';
 
 function formatStatusClass(string $status): string
 {
@@ -1364,6 +1365,38 @@ foreach ($trafficStatusOrder as $trafficStatus) {
 
 $trafficGradient = implode(', ', $trafficGradientStops);
 
+$streamOrder = ['Teknis', 'Bisnis & Nonteknis'];
+$streamTrafficGradients = [];
+
+foreach ($streamOrder as $stream) {
+    $streamGradientStops = [];
+    $streamGradientPosition = 0;
+
+    foreach ($trafficStatusOrder as $trafficStatus) {
+        $streamPercentage = $streamStats[$stream]['total'] > 0
+            ? ($streamStats[$stream][$trafficStatus] / $streamStats[$stream]['total']) * 100
+            : 0;
+        $streamGradientEnd = $streamGradientPosition + $streamPercentage;
+        $streamGradientStops[] = $trafficStatusColors[$trafficStatus]
+            . ' ' . number_format($streamGradientPosition, 3, '.', '') . '% '
+            . number_format($streamGradientEnd, 3, '.', '') . '%';
+        $streamGradientPosition = $streamGradientEnd;
+    }
+
+    $streamTrafficGradients[$stream] = implode(', ', $streamGradientStops);
+}
+
+// Kondisi proyek mengikuti tingkat status tertinggi yang masih aktif.
+$dashboardHealthStatus = 'green';
+if ($statusCounts['red'] > 0) {
+    $dashboardHealthStatus = 'red';
+} elseif ($statusCounts['yellow'] > 0) {
+    $dashboardHealthStatus = 'yellow';
+} elseif ($statusCounts['green'] === 0 && $statusCounts['black'] > 0) {
+    $dashboardHealthStatus = 'black';
+}
+$dashboardHealthMeta = trafficMeta($dashboardHealthStatus);
+
 /*
 |--------------------------------------------------------------------------
 | FILTER STATUS
@@ -1440,13 +1473,13 @@ require __DIR__ . '/includes/sidebar.php';
         <header class="topbar" data-animate>
             <div class="topbar__heading">
                 <p class="topbar__eyebrow">PMO Perubahan Tarif TransJakarta</p>
-                <h2 id="pageTitleHeading">Dashboard</h2>
+                <h2 id="pageTitleHeading">Ringkasan Proyek</h2>
                 <p id="pageTitleDescription">Ringkasan grafik dan tabel status implementasi. Detail roadmap, timeline, risk, issue, RACI, dan data pendukung tetap tersedia di menu lain.</p>
             </div>
             <div class="topbar__controls">
                 <div class="topbar__meta-group">
                     <div class="topbar__meta-card">
-                        <span class="topbar__meta-label">Snapshot sumber</span>
+                        <span class="topbar__meta-label">Data per</span>
                         <strong>17 Jul 2026</strong>
                     </div>
                     <div class="topbar__meta-card">
@@ -1484,36 +1517,63 @@ require __DIR__ . '/includes/sidebar.php';
                             <h3 id="highLevelDashboardTitle" class="panel__title">Kondisi Implementasi Tarif TJ</h3>
                             <p class="section-subtitle">Arahkan kursor untuk ringkasan, lalu klik grafik atau kategori untuk melihat detail aktivitas dan PIC.</p>
                         </div>
-                        <div class="high-level-dashboard__progress">
-                            <span>Progres keseluruhan</span>
-                            <strong><?= e((string) $dashboardOverallProgress); ?>%</strong>
-                        </div>
                     </div>
 
                     <div class="high-level-dashboard__content">
-                        <button
-                            type="button"
-                            class="traffic-pie traffic-pie--interactive"
-                            style="--traffic-pie: conic-gradient(<?= e($trafficGradient); ?>);"
-                            data-dashboard-detail-trigger="all"
-                            data-dashboard-detail-label="Seluruh aktivitas"
-                            data-tooltip="Klik untuk melihat seluruh aktivitas, progres, dan PIC"
-                            aria-controls="dashboardStatusDetail"
-                            aria-label="Komposisi status seluruh aktivitas. Klik untuk melihat detail."
-                        >
-                            <div class="traffic-pie__center">
-                                <strong><?= e((string) $totalActivities); ?></strong>
-                                <span>aktivitas</span>
-                            </div>
-                        </button>
+                        <div class="dashboard-donut-pair" aria-label="Grafik ringkasan project">
+                            <button
+                                type="button"
+                                class="traffic-pie traffic-pie--interactive"
+                                style="--traffic-pie: conic-gradient(<?= e($trafficGradient); ?>);"
+                                data-dashboard-detail-trigger="all"
+                                data-dashboard-detail-label="Seluruh aktivitas"
+                                data-tooltip="Klik untuk melihat seluruh aktivitas, progres, dan PIC."
+                                aria-controls="dashboardStatusDetail"
+                                aria-label="Komposisi status seluruh aktivitas. Klik untuk melihat detail."
+                            >
+                                <div class="traffic-pie__center">
+                                    <strong><?= e((string) $dashboardOverallProgress); ?>%</strong>
+                                    <span>progres keseluruhan</span>
+                                </div>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="traffic-pie traffic-pie--interactive traffic-pie--stream"
+                                style="--traffic-pie: conic-gradient(<?= e($streamTrafficGradients['Teknis']); ?>);"
+                                data-dashboard-detail-trigger="stream:Teknis"
+                                data-dashboard-detail-label="Aktivitas Teknis"
+                                data-tooltip="Teknis: G <?= e((string) $streamStats['Teknis']['red']); ?> | R <?= e((string) $streamStats['Teknis']['yellow']); ?> | A <?= e((string) $streamStats['Teknis']['green']); ?> | BM <?= e((string) $streamStats['Teknis']['black']); ?>. Klik untuk detail."
+                                aria-controls="dashboardStatusDetail"
+                                aria-label="Status aktivitas Teknis. Klik untuk melihat detail aktivitas Teknis."
+                            >
+                                <div class="traffic-pie__center">
+                                    <strong><?= e((string) $streamStats['Teknis']['total']); ?></strong>
+                                    <span>Teknis</span>
+                                </div>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="traffic-pie traffic-pie--interactive traffic-pie--stream"
+                                style="--traffic-pie: conic-gradient(<?= e($streamTrafficGradients['Bisnis & Nonteknis']); ?>);"
+                                data-dashboard-detail-trigger="stream:Bisnis &amp; Nonteknis"
+                                data-dashboard-detail-label="Aktivitas Bisnis & Nonteknis"
+                                data-tooltip="Bisnis & Nonteknis: G <?= e((string) $streamStats['Bisnis & Nonteknis']['red']); ?> | R <?= e((string) $streamStats['Bisnis & Nonteknis']['yellow']); ?> | A <?= e((string) $streamStats['Bisnis & Nonteknis']['green']); ?> | BM <?= e((string) $streamStats['Bisnis & Nonteknis']['black']); ?>. Klik untuk detail."
+                                aria-controls="dashboardStatusDetail"
+                                aria-label="Status aktivitas Bisnis dan Nonteknis. Klik untuk melihat detail aktivitas Bisnis dan Nonteknis."
+                            >
+                                <div class="traffic-pie__center">
+                                    <strong><?= e((string) $streamStats['Bisnis & Nonteknis']['total']); ?></strong>
+                                    <span>Bisnis</span>
+                                </div>
+                            </button>
+                        </div>
 
                         <div class="traffic-pie__legend" aria-label="Pilih detail status">
                             <?php foreach ($trafficStatusOrder as $status): ?>
                                 <?php
                                 $meta = trafficMeta($status);
-                                $percentage = $totalActivities > 0
-                                    ? (int) round(($statusCounts[$status] / $totalActivities) * 100)
-                                    : 0;
                                 ?>
                                 <button
                                     type="button"
@@ -1525,34 +1585,11 @@ require __DIR__ . '/includes/sidebar.php';
                                 >
                                     <span class="traffic-dot <?= e($meta['dot_class']); ?>" aria-hidden="true"></span>
                                     <span><?= e($meta['label']); ?></span>
-                                    <b><?= e((string) $percentage); ?>%</b>
-                                    <small><?= e((string) $statusCounts[$status]); ?> aktivitas</small>
+                                    <b><?= e((string) $statusCounts[$status]); ?> aktivitas</b>
                                 </button>
                             <?php endforeach; ?>
                         </div>
 
-                        <div class="high-level-dashboard__areas">
-                            <?php foreach ($streamStats as $stream => $stats): ?>
-                                <?php
-                                $streamAttentionCount = (int) $stats['red'] + (int) $stats['yellow'];
-                                $streamAttentionLabel = $streamAttentionCount > 0
-                                    ? $streamAttentionCount . ' perlu perhatian'
-                                    : 'terkendali';
-                                ?>
-                                <button
-                                    type="button"
-                                    class="area-health-card"
-                                    data-dashboard-detail-trigger="stream:<?= e($stream); ?>"
-                                    data-dashboard-detail-label="<?= e($stream); ?>"
-                                    data-tooltip="<?= e((string) $stats['total']); ?> aktivitas | Klik untuk melihat PIC dan progres"
-                                    aria-controls="dashboardStatusDetail"
-                                >
-                                    <span><?= e($stream); ?></span>
-                                    <strong><?= e((string) $stats['total']); ?> aktivitas</strong>
-                                    <small><?= e($streamAttentionLabel); ?></small>
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
                     </div>
                 </section>
 
@@ -1651,6 +1688,7 @@ require __DIR__ . '/includes/sidebar.php';
                      CHART GRID
                 ========================================= -->
 
+                <?php if (false): /* Grafik batang lama digantikan donut ringkasan. */ ?>
                 <div class="dashboard-chart-grid dashboard-chart-grid--legacy">
 
                     <!-- ====================================
@@ -1854,6 +1892,7 @@ require __DIR__ . '/includes/sidebar.php';
                     </article>
 
                 </div>
+                <?php endif; ?>
 
                 <!-- ========================================
                      STATUS TABLE
@@ -2619,6 +2658,7 @@ require __DIR__ . '/includes/sidebar.php';
             </section>
         </div>
 
+        <?php if ($isAdministrator): ?>
         <section class="section-stack admin-strip" data-animate>
             <section class="master-pic-hero">
                 <div class="master-pic-hero__content">
@@ -2763,6 +2803,7 @@ require __DIR__ . '/includes/sidebar.php';
                 </article>
             </div>
         </section>
+        <?php endif; ?>
 
         <footer class="page-footer">
             Dashboard PMO Implementasi Perubahan Tarif TransJakarta untuk PT JakLingko Indonesia.

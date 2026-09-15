@@ -1284,6 +1284,16 @@ tbody tr:hover {
     }
 }
 
+@media (max-width: 760px) {
+    .high-level-dashboard__content {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-donut-pair {
+        grid-column: auto;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
@@ -2043,9 +2053,16 @@ tbody tr:hover {
 }
 
 .high-level-dashboard__content {
-    grid-template-columns: 142px minmax(250px, 1fr) minmax(190px, 0.7fr);
+    grid-template-columns: 450px minmax(250px, 1fr);
     gap: 16px;
     margin-top: 14px;
+}
+
+.dashboard-donut-pair {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
 }
 
 .traffic-pie--interactive {
@@ -2064,12 +2081,49 @@ tbody tr:hover {
     box-shadow: inset 0 0 0 1px rgba(23, 50, 74, 0.06), 0 12px 22px rgba(18, 37, 56, 0.12);
 }
 
+.traffic-pie--stream {
+    width: 142px;
+    flex: 0 0 142px;
+}
+
+.traffic-pie--stream .traffic-pie__center strong {
+    font-size: 1.2rem;
+}
+
+.traffic-pie--stream .traffic-pie__center span {
+    max-width: 70px;
+    font-size: 0.7rem;
+}
+
 .traffic-pie__center {
     width: 92px;
 }
 
 .traffic-pie__center strong {
     font-size: 1.35rem;
+}
+
+.traffic-pie__center--red strong {
+    color: #c93f3f;
+}
+
+.traffic-pie__center--yellow strong {
+    color: #a87000;
+}
+
+.traffic-pie__center--green strong {
+    color: #18734b;
+}
+
+.traffic-pie__center--black strong {
+    color: #526371;
+}
+
+.traffic-pie__center span {
+    max-width: 70px;
+    margin-top: 5px;
+    line-height: 1.2;
+    text-align: center;
 }
 
 .traffic-pie__legend {
@@ -2087,7 +2141,10 @@ tbody tr:hover {
 }
 
 .traffic-pie__legend-button b {
-    font-size: 0.8rem;
+    color: var(--text-main);
+    font-size: 0.74rem;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .high-level-dashboard__areas {
@@ -2105,16 +2162,20 @@ tbody tr:hover {
 }
 
 .area-health-card small {
-    display: none;
+    display: block;
+    font-size: 0.65rem;
+    letter-spacing: -0.01em;
 }
 
 .traffic-pie--interactive[data-tooltip],
+.traffic-pie--stream[data-tooltip],
 .traffic-pie__legend-button[data-tooltip],
 .area-health-card[data-tooltip] {
     position: relative;
 }
 
 .traffic-pie--interactive[data-tooltip]::after,
+.traffic-pie--stream[data-tooltip]::after,
 .traffic-pie__legend-button[data-tooltip]::after,
 .area-health-card[data-tooltip]::after {
     position: absolute;
@@ -2143,14 +2204,56 @@ tbody tr:hover {
     top: calc(100% + 10px);
 }
 
+.traffic-pie--stream[data-tooltip]::after {
+    bottom: auto;
+    top: calc(100% + 10px);
+}
+
 .traffic-pie--interactive:hover::after,
 .traffic-pie--interactive:focus-visible::after,
+.traffic-pie--stream:hover::after,
 .traffic-pie__legend-button:hover::after,
 .traffic-pie__legend-button:focus-visible::after,
 .area-health-card:hover::after,
 .area-health-card:focus-visible::after {
     opacity: 1;
     transform: translate(-50%, 0);
+}
+
+@media (max-width: 980px) {
+    .high-level-dashboard__content {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .dashboard-donut-pair {
+        grid-column: 1 / -1;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 520px) {
+    .dashboard-donut-pair {
+        gap: 9px;
+    }
+
+    .traffic-pie--interactive {
+        width: 100px;
+    }
+
+    .traffic-pie--stream {
+        width: 100px;
+        flex-basis: 100px;
+    }
+}
+
+@media (max-width: 760px) {
+    .high-level-dashboard__content {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-donut-pair {
+        grid-column: auto;
+    }
 }
 
 .dashboard-drilldown {
@@ -3666,5 +3769,42 @@ body {
 
     .dashboard-traffic-table {
         min-width: 1220px;
+    }
+}
+
+/* Keep the two executive donuts readable after legacy responsive rules. */
+@media (max-width: 980px) {
+    .high-level-dashboard__content {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .dashboard-donut-pair {
+        grid-column: 1 / -1;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 520px) {
+    .dashboard-donut-pair {
+        gap: 9px;
+    }
+
+    .traffic-pie--interactive {
+        width: 100px;
+    }
+
+    .traffic-pie--stream {
+        width: 100px;
+        flex-basis: 100px;
+    }
+}
+
+@media (max-width: 760px) {
+    .high-level-dashboard__content {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-donut-pair {
+        grid-column: auto;
     }
 }

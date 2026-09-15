@@ -7,9 +7,9 @@ Dashboard ini dibuat untuk monitoring project implementasi kenaikan tarif TransJ
 - Multi-user login dengan role `Administrator`, `View Only`, dan editor scoped per instansi `DISHUB`, `TJ`, `LRTJ`, `MRTJ`, `JLI`, serta `JPAI/Jatelindo`.
 - Dashboard berbasis tab dengan halaman utama yang disusun seperti briefing eksekutif.
 - CRUD lengkap untuk kegiatan, milestone, risiko, roadmap, matriks RACI, issue log, dan master PIC.
-- Master PIC terpusat dengan dropdown agar nama penanggung jawab konsisten.
+- Master PIC terpusat dikelola khusus Administrator agar nama penanggung jawab konsisten.
 - Filter kegiatan berdasarkan kata kunci, status, area kerja, dan PIC.
-- Ringkasan utama menampilkan progres, status `aman / rawan / genting`, serta arti setiap status agar pimpinan cukup membaca landing page.
+- Ringkasan utama menampilkan kondisi proyek dan jumlah aktivitas pada setiap status agar pimpinan cukup membaca halaman ringkasan.
 - Audit trail perubahan data terbaru pada area admin di bagian bawah dashboard.
 - Halaman cek hosting `/system/check` untuk verifikasi kesiapan PHP + SQLite setelah upload.
 - URL rapi tanpa `.php` untuk alur utama.
@@ -76,28 +76,21 @@ Tab utama yang tersedia:
 - `Timeline Bisnis & Nonteknis`
 - `Risk Register`
 
-Halaman utama `Ringkasan Tarif TJ` dirancang sebagai satu layar ringkasan untuk rapat pimpinan. Fokusnya adalah progres keseluruhan, komposisi kondisi per area kerja, dan arti status agar keputusan dapat diambil tanpa membuka tabel detail.
+Halaman utama `Ringkasan Tarif TJ` dirancang sebagai satu layar ringkasan untuk rapat pimpinan. Fokusnya adalah kondisi proyek dan jumlah aktivitas pada setiap kondisi agar keputusan dapat diambil tanpa membuka tabel detail.
 
-Grafik donut, kategori status, dan area kerja dapat diarahkan kursor untuk melihat ringkasan singkat, lalu diklik untuk membuka detail aktivitas, progres, dan PIC dalam dialog tanpa menambah panjang halaman dashboard.
+Dua grafik donut menampilkan status keseluruhan dan komposisi area kerja. Kategori status serta area kerja dapat diarahkan kursor untuk melihat ringkasan singkat, lalu diklik untuk membuka detail aktivitas, progres, dan PIC tanpa menambah panjang halaman dashboard.
 
 - `Status Project`
 - `Target Terdekat`
 - `PIC & Tanggung Jawab Utama`
 - `Isu Kritis Saat Ini`
 
-Arti status lampu pada ringkasan:
-
-- `Aman` (hijau): berjalan sesuai rencana dan cukup dipantau pada review rutin.
-- `Rawan` (kuning): ada ketergantungan atau tindak lanjut yang perlu dipantau.
-- `Genting` (merah): target atau keputusan terhambat dan perlu eskalasi segera.
-- `Belum Mulai` (abu-abu): belum memasuki periode pelaksanaan.
-
 Pemetaan area kerja:
 
 - `Teknis`: FSD, development, integrasi, SIT, UAT, PTR, dan deployment.
 - `Bisnis & Nonteknis`: BRD, requirement, fare matrix, governance, kebijakan, kesiapan operator, settlement, dan komunikasi.
 
-Area admin berada di bagian bawah dashboard dan berisi:
+Area admin hanya tersedia untuk akun `Administrator` dan berisi:
 
 - `Master PIC`
 - `Riwayat Perubahan Terbaru`
@@ -111,7 +104,7 @@ Area admin berada di bagian bawah dashboard dan berisi:
 - Kegiatan Bisnis & Nonteknis: buka tab `Timeline Bisnis & Nonteknis`, lalu klik `Edit` pada baris kegiatan.
 - Kegiatan teknis: buka tab `Timeline Teknis`, lalu klik `Edit` pada baris kegiatan teknis.
 - Milestone: buka tab `Timeline Teknis`, lalu klik `Edit` pada baris milestone.
-- PIC: buka area `Master PIC`, lalu tambah atau edit daftar PIC yang dipakai di dropdown.
+- PIC: Administrator membuka area `Master PIC`, lalu tambah atau edit daftar PIC yang dipakai di dropdown.
 - Risiko: buka tab `Risk Register`, lalu klik `Edit`.
 - Issue log: buka tab `Risk Register`, lalu gunakan tombol `Tambah Issue Log`, `Edit`, atau `Hapus`.
 - Roadmap: buka tab `Executive Roadmap`, lalu klik `Edit`.
@@ -123,7 +116,7 @@ Setiap aksi tambah, ubah, dan hapus akan otomatis masuk ke `Riwayat Perubahan Te
 
 - `Administrator`: bisa kelola seluruh data, master PIC, export, dan halaman cek hosting.
 - `View Only`: hanya bisa melihat dashboard dan tidak melihat tombol edit/hapus/tambah.
-- `Editor scoped`: hanya bisa mengubah data yang sesuai dengan kata kunci PIC / owner instansinya.
+- `Editor scoped`: hanya bisa mengubah data dengan kode PIC / owner instansinya yang cocok secara tepat. Kode `TJ` tidak memberi akses ke `LRTJ` atau `MRTJ`.
 
 Contoh:
 

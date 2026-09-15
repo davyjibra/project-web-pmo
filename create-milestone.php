@@ -135,7 +135,9 @@ require __DIR__ . '/includes/header.php';
                     </label>
                     <div class="form-actions">
                         <button type="submit" class="action-button action-button--primary">Simpan Milestone</button>
+                        <?php if (canManageModule('*')): ?>
                         <a href="/pics/create" class="action-button">Tambah PIC Baru</a>
+                        <?php endif; ?>
                         <a href="/#linimasa-teknis" class="action-button">Batal</a>
                     </div>
                 </form>
