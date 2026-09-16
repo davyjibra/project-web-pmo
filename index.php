@@ -1548,7 +1548,7 @@ require __DIR__ . '/includes/sidebar.php';
                                 aria-label="Status aktivitas Teknis. Klik untuk melihat detail aktivitas Teknis."
                             >
                                 <div class="traffic-pie__center">
-                                    <strong><?= e((string) $streamStats['Teknis']['total']); ?></strong>
+                                    <strong><?= e((string) $streamStats['Teknis']['total']); ?> aktivitas</strong>
                                     <span>Teknis</span>
                                 </div>
                             </button>
@@ -1564,7 +1564,7 @@ require __DIR__ . '/includes/sidebar.php';
                                 aria-label="Status aktivitas Bisnis dan Nonteknis. Klik untuk melihat detail aktivitas Bisnis dan Nonteknis."
                             >
                                 <div class="traffic-pie__center">
-                                    <strong><?= e((string) $streamStats['Bisnis & Nonteknis']['total']); ?></strong>
+                                    <strong><?= e((string) $streamStats['Bisnis & Nonteknis']['total']); ?> aktivitas</strong>
                                     <span>Bisnis</span>
                                 </div>
                             </button>

@@ -70,12 +70,11 @@ if ($activeSidebarId === '' && $sidebarNavigationItems !== []) {
 
     <div class="sidebar__brand">
 
-        <div
+        <img
             class="sidebar__logo"
-            aria-hidden="true"
+            src="/assets/images/jli-logo.png"
+            alt="PT Jakarta Lingko Indonesia"
         >
-            JL
-        </div>
 
         <div>
 

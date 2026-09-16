@@ -88,15 +88,12 @@ a {
 }
 
 .sidebar__logo {
-    display: grid;
-    place-items: center;
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    background: var(--accent);
-    color: #fff;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    display: block;
+    width: 132px;
+    height: 62px;
+    flex: 0 0 132px;
+    object-fit: contain;
+    object-position: left center;
 }
 
 .sidebar__eyebrow,
@@ -1066,6 +1063,24 @@ tbody tr:hover {
     display: flex;
     align-items: center;
     gap: 14px;
+}
+
+.auth-brand .sidebar__logo {
+    width: 150px;
+    height: 70px;
+    flex-basis: 150px;
+}
+
+@media (max-width: 420px) {
+    .auth-brand {
+        align-items: flex-start;
+    }
+
+    .auth-brand .sidebar__logo {
+        width: 112px;
+        height: 54px;
+        flex-basis: 112px;
+    }
 }
 
 .auth-title,
@@ -2087,7 +2102,8 @@ tbody tr:hover {
 }
 
 .traffic-pie--stream .traffic-pie__center strong {
-    font-size: 1.2rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
 }
 
 .traffic-pie--stream .traffic-pie__center span {
@@ -3781,6 +3797,59 @@ body {
     .dashboard-donut-pair {
         grid-column: 1 / -1;
         justify-content: center;
+    }
+
+    .dashboard-page,
+    .dashboard-page .main-content,
+    .high-level-dashboard {
+        overflow-x: hidden;
+    }
+
+    .high-level-dashboard {
+        isolation: isolate;
+    }
+
+    .dashboard-donut-pair,
+    .traffic-pie__legend {
+        position: relative;
+        z-index: 1;
+    }
+
+    .dashboard-donut-pair {
+        z-index: 3;
+    }
+
+    .traffic-pie--interactive:hover,
+    .traffic-pie--interactive:focus-visible,
+    .traffic-pie__legend-button:hover,
+    .traffic-pie__legend-button:focus-visible {
+        z-index: 20;
+    }
+
+    .traffic-pie--interactive[data-tooltip]::after,
+    .traffic-pie__legend-button[data-tooltip]::after {
+        z-index: 21;
+        width: min(220px, calc(100vw - 56px));
+        box-sizing: border-box;
+        white-space: normal;
+    }
+
+    .dashboard-donut-pair .traffic-pie--interactive:first-child::after {
+        left: 0;
+        transform: translate(0, 4px);
+    }
+
+    .dashboard-donut-pair .traffic-pie--interactive:last-child::after {
+        right: 0;
+        left: auto;
+        transform: translate(0, 4px);
+    }
+
+    .dashboard-donut-pair .traffic-pie--interactive:first-child:hover::after,
+    .dashboard-donut-pair .traffic-pie--interactive:first-child:focus-visible::after,
+    .dashboard-donut-pair .traffic-pie--interactive:last-child:hover::after,
+    .dashboard-donut-pair .traffic-pie--interactive:last-child:focus-visible::after {
+        transform: translate(0, 0);
     }
 }
 

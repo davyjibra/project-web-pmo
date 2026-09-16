@@ -38,7 +38,7 @@ if ($requestMethod === 'POST') {
 <main class="auth-layout">
     <section class="auth-card">
         <div class="auth-brand">
-            <div class="sidebar__logo" aria-hidden="true">JL</div>
+            <img class="sidebar__logo" src="/assets/images/jli-logo.png" alt="PT Jakarta Lingko Indonesia">
             <div>
                 <p class="sidebar__eyebrow">PT JakLingko Indonesia</p>
                 <h1 class="auth-title">Dashboard PMO</h1>
