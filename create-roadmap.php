@@ -9,6 +9,7 @@ require_once __DIR__ . '/config/audit.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 $pageTitle = 'Dashboard PMO | Tambah Peta Jalan';
 $errorMessage = '';
@@ -40,11 +41,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $errorMessage = 'Mohon lengkapi data peta jalan dengan benar.';
         } else {
             $stmt = $pdo->prepare(
-                'INSERT INTO roadmaps (phase, detail, status, sequence, created_at, updated_at)
-                 VALUES (:phase, :detail, :status, :sequence, :created_at, :updated_at)'
+                'INSERT INTO roadmaps (project_key, phase, detail, status, sequence, created_at, updated_at)
+                 VALUES (:project_key, :phase, :detail, :status, :sequence, :created_at, :updated_at)'
             );
             $timestamp = date('Y-m-d H:i:s');
             $stmt->execute([
+                ':project_key' => $activeProjectKey,
                 ':phase' => $formData['phase'],
                 ':detail' => $formData['detail'],
                 ':status' => $formData['status'],

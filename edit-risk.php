@@ -9,6 +9,7 @@ require_once __DIR__ . '/config/audit.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 
 $pageTitle = 'Dashboard PMO | Edit Risiko';
@@ -40,11 +41,12 @@ if (!$riskId) {
 }
 
 $statement = $pdo->prepare(
-    'SELECT * FROM risks WHERE id = :id LIMIT 1'
+    'SELECT * FROM risks WHERE id = :id AND project_key = :project_key LIMIT 1'
 );
 
 $statement->execute([
     ':id' => $riskId,
+    ':project_key' => $activeProjectKey,
 ]);
 
 $risk = $statement->fetch();
@@ -108,12 +110,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'SELECT COUNT(*)
                  FROM risks
                  WHERE code = :code
-                   AND id != :id'
+                   AND id != :id
+                   AND project_key = :project_key'
             );
 
             $duplicateStatement->execute([
                 ':code' => $formData['code'],
                 ':id' => $riskId,
+                ':project_key' => $activeProjectKey,
             ]);
 
             $duplicateCount = (int) $duplicateStatement->fetchColumn();

@@ -9,6 +9,7 @@ require_once __DIR__ . '/config/pic.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 $pageTitle = 'Dashboard PMO | Edit Milestone';
 $errorMessage = '';
@@ -22,8 +23,8 @@ if (!$milestoneId) {
     exit;
 }
 
-$statement = $pdo->prepare('SELECT * FROM milestones WHERE id = :id LIMIT 1');
-$statement->execute([':id' => $milestoneId]);
+$statement = $pdo->prepare('SELECT * FROM milestones WHERE id = :id AND project_key = :project_key LIMIT 1');
+$statement->execute([':id' => $milestoneId, ':project_key' => $activeProjectKey]);
 $milestone = $statement->fetch();
 
 if (!$milestone) {

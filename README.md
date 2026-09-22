@@ -1,6 +1,19 @@
-# Dashboard PMO Implementasi Perubahan Tarif
+# Dashboard PMO EIPTJ dan TAJ
 
-Dashboard ini dibuat untuk monitoring project implementasi kenaikan tarif TransJakarta dalam bahasa Indonesia. Aplikasi memakai PHP native + SQLite sehingga ringan untuk demo, review internal, dan siap di-upload ke shared hosting yang mendukung PHP + SQLite.
+Dashboard ini dibuat untuk monitoring proyek EIPTJ dan Terminal Angkutan Jalan dalam bahasa Indonesia. Aplikasi memakai PHP native + SQLite sehingga ringan untuk demo, review internal, dan siap di-upload ke shared hosting yang mendukung PHP + SQLite.
+
+## Pilihan Proyek
+
+Satu aplikasi mendukung dua konteks proyek yang dipilih dari sidebar:
+
+- **EIPTJ**
+- **Terminal Angkutan Jalan (TAJ)**
+
+Pilihan proyek disimpan selama sesi pengguna. Dashboard, grafik, aktivitas,
+milestone, risiko, issue log, roadmap, RACI, audit trail, dan ekspor hanya
+menampilkan data dari proyek aktif. Data awal TAJ memuat 14 aktivitas periode
+September-Desember 2026 serta milestone dan peta jalan hasil risalah rapat
+24 Agustus 2026; PIC TAJ dibatasi pada **DISHUB** dan **JLI**.
 
 ## Fitur Utama
 
@@ -70,13 +83,13 @@ Setelah itu buka:
 
 Tab utama yang tersedia:
 
-- `Ringkasan Tarif TJ`
+- `Ringkasan Proyek`
 - `Executive Roadmap`
 - `Timeline Teknis`
 - `Timeline Bisnis & Nonteknis`
 - `Risk Register`
 
-Halaman utama `Ringkasan Tarif TJ` dirancang sebagai satu layar ringkasan untuk rapat pimpinan. Fokusnya adalah kondisi proyek dan jumlah aktivitas pada setiap kondisi agar keputusan dapat diambil tanpa membuka tabel detail.
+Halaman utama `Ringkasan Proyek` dirancang sebagai satu layar ringkasan untuk rapat pimpinan. Fokusnya adalah kondisi proyek dan jumlah aktivitas pada setiap kondisi agar keputusan dapat diambil tanpa membuka tabel detail.
 
 Dua grafik donut menampilkan status keseluruhan dan komposisi area kerja. Kategori status serta area kerja dapat diarahkan kursor untuk melihat ringkasan singkat, lalu diklik untuk membuka detail aktivitas, progres, dan PIC tanpa menambah panjang halaman dashboard.
 
@@ -175,4 +188,4 @@ Halaman tersebut akan memeriksa:
 - Bila akan dipakai di domain produksi, sangat disarankan mengganti akun demo dan password bawaan.
 - Untuk import data riil dari Excel, langkah berikutnya yang paling masuk akal adalah menyiapkan importer agar update timeline bisa lebih cepat.
 - Jika tetap memakai SQLite di hosting, lakukan backup rutin pada file `data/pmo.sqlite`.
-- Jika dashboard akan dipakai oleh pimpinan atau client, fokuskan penggunaan pada halaman `Ringkasan Tarif TJ` dan gunakan tab lain hanya saat butuh detail operasional.
+- Jika dashboard akan dipakai oleh pimpinan atau client, fokuskan penggunaan pada halaman `Ringkasan Proyek` dan gunakan tab lain hanya saat butuh detail operasional.

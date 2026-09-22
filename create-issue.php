@@ -11,6 +11,7 @@ require_once __DIR__ . '/config/pic.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 
 $pageTitle = 'Dashboard PMO | Tambah Issue Log';
@@ -80,11 +81,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $duplicateStatement = $pdo->prepare(
                 'SELECT COUNT(*)
                  FROM issue_logs
-                 WHERE code = :code'
+                 WHERE code = :code AND project_key = :project_key'
             );
 
             $duplicateStatement->execute([
                 ':code' => $formData['code'],
+                ':project_key' => $activeProjectKey,
             ]);
 
             $duplicateCount = (int) $duplicateStatement->fetchColumn();
@@ -94,6 +96,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             } else {
                 $insertStatement = $pdo->prepare(
                     'INSERT INTO issue_logs (
+                        project_key,
                         code,
                         category,
                         description,
@@ -105,6 +108,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         created_at,
                         updated_at
                     ) VALUES (
+                        :project_key,
                         :code,
                         :category,
                         :description,
@@ -121,6 +125,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 $timestamp = date('Y-m-d H:i:s');
 
                 $insertStatement->execute([
+                    ':project_key' => $activeProjectKey,
                     ':code' => $formData['code'],
                     ':category' => $formData['category'],
                     ':description' => $formData['description'],

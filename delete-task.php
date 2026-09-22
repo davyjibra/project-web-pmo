@@ -27,8 +27,9 @@ if (!$taskId) {
 }
 
 $pdo = getDatabaseConnection();
-$taskStatement = $pdo->prepare('SELECT code, name, workstream, status, pic FROM tasks WHERE id = :id LIMIT 1');
-$taskStatement->execute([':id' => $taskId]);
+$activeProjectKey = getActiveProjectKey();
+$taskStatement = $pdo->prepare('SELECT code, name, workstream, status, pic FROM tasks WHERE id = :id AND project_key = :project_key LIMIT 1');
+$taskStatement->execute([':id' => $taskId, ':project_key' => $activeProjectKey]);
 $task = $taskStatement->fetch();
 
 if (!is_array($task)) {
@@ -39,8 +40,8 @@ if (!is_array($task)) {
 
 requireScopedModulePermission('tasks', (string) $task['pic']);
 
-$deleteStatement = $pdo->prepare('DELETE FROM tasks WHERE id = :id');
-$deleteStatement->execute([':id' => $taskId]);
+$deleteStatement = $pdo->prepare('DELETE FROM tasks WHERE id = :id AND project_key = :project_key');
+$deleteStatement->execute([':id' => $taskId, ':project_key' => $activeProjectKey]);
 
 if ($deleteStatement->rowCount() > 0) {
     writeAuditLog($pdo, 'Kegiatan', 'delete', (string) $task['code'] . ' - ' . (string) $task['name'], [

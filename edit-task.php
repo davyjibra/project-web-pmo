@@ -10,6 +10,7 @@ require_once __DIR__ . '/config/pic.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 $pageTitle = 'Dashboard PMO | Edit Kegiatan';
 $errorMessage = '';
@@ -37,11 +38,12 @@ if (!$taskId) {
 }
 
 $taskStatement = $pdo->prepare(
-    'SELECT * FROM tasks WHERE id = :id LIMIT 1'
+    'SELECT * FROM tasks WHERE id = :id AND project_key = :project_key LIMIT 1'
 );
 
 $taskStatement->execute([
     ':id' => $taskId,
+    ':project_key' => $activeProjectKey,
 ]);
 
 $task = $taskStatement->fetch();
@@ -114,12 +116,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'SELECT COUNT(*)
                  FROM tasks
                  WHERE code = :code
-                   AND id != :id'
+                   AND id != :id
+                   AND project_key = :project_key'
             );
 
             $duplicateStatement->execute([
                 ':code' => $formData['code'],
                 ':id' => $taskId,
+                ':project_key' => $activeProjectKey,
             ]);
 
             $duplicateCount = (int) $duplicateStatement->fetchColumn();

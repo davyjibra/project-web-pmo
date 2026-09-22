@@ -10,21 +10,27 @@ require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
 $user = getAuthenticatedUser();
+$activeProjectKey = getActiveProjectKey();
+$activeProject = getActiveProject();
+$projectDashboardTitle = $activeProjectKey === 'taj'
+    ? 'Kondisi Implementasi Terminal Angkutan Jalan'
+    : 'Kondisi Implementasi EIPTJ';
+$projectSnapshotDate = $activeProjectKey === 'taj'
+    ? '24 Agu 2026'
+    : '17 Jul 2026';
 $flashMessage = getFlashMessage();
 $today = date('Y-m-d');
-$lastUpdated = (string) $pdo->query(
-    "SELECT MAX(updated_at) FROM (
-        SELECT updated_at FROM tasks
-        UNION ALL
-        SELECT updated_at FROM milestones
-        UNION ALL
-        SELECT updated_at FROM risks
-        UNION ALL
-        SELECT updated_at FROM roadmaps
-        UNION ALL
-        SELECT updated_at FROM raci_matrix
-    )"
-)->fetchColumn();
+$lastUpdatedStatement = $pdo->prepare(
+    'SELECT MAX(updated_at) FROM (
+        SELECT updated_at FROM tasks WHERE project_key = :project_key
+        UNION ALL SELECT updated_at FROM milestones WHERE project_key = :project_key
+        UNION ALL SELECT updated_at FROM risks WHERE project_key = :project_key
+        UNION ALL SELECT updated_at FROM roadmaps WHERE project_key = :project_key
+        UNION ALL SELECT updated_at FROM raci_matrix WHERE project_key = :project_key
+    )'
+);
+$lastUpdatedStatement->execute([':project_key' => $activeProjectKey]);
+$lastUpdated = (string) $lastUpdatedStatement->fetchColumn();
 
 $taskStatement = $pdo->prepare(
     'SELECT
@@ -42,17 +48,11 @@ $taskStatement = $pdo->prepare(
         END AS derived_status,
         progress,
         priority
-    FROM tasks'
+    FROM tasks
+    WHERE project_key = :project_key'
 );
-$taskStatement->execute([':today' => $today]);
+$taskStatement->execute([':today' => $today, ':project_key' => $activeProjectKey]);
 $tasks = $taskStatement->fetchAll();
-
-if (!userCanAccessValue('*')) {
-    $tasks = array_values(array_filter(
-        $tasks,
-        static fn (array $task): bool => userCanAccessValue((string) $task['pic'])
-    ));
-}
 
 $totalTasks = count($tasks);
 $completedTasks = 0;
@@ -193,21 +193,16 @@ $filteredTasks = array_values(array_filter(
 $milestoneStatement = $pdo->prepare(
     'SELECT id, name, target_date, status, pic
      FROM milestones
+     WHERE project_key = :project_key
      ORDER BY target_date ASC'
 );
-$milestoneStatement->execute();
+$milestoneStatement->execute([':project_key' => $activeProjectKey]);
 $milestones = $milestoneStatement->fetchAll();
-
-if (!userCanAccessValue('*')) {
-    $milestones = array_values(array_filter(
-        $milestones,
-        static fn (array $milestone): bool => userCanAccessValue((string) $milestone['pic'])
-    ));
-}
 
 $riskStatement = $pdo->prepare(
     'SELECT id, code, title, category, level, owner, status
      FROM risks
+     WHERE project_key = :project_key
      ORDER BY
         CASE level
             WHEN "Tinggi" THEN 1
@@ -216,15 +211,8 @@ $riskStatement = $pdo->prepare(
         END,
         code ASC'
 );
-$riskStatement->execute();
+$riskStatement->execute([':project_key' => $activeProjectKey]);
 $risks = $riskStatement->fetchAll();
-
-if (!userCanAccessValue('*')) {
-    $risks = array_values(array_filter(
-        $risks,
-        static fn (array $risk): bool => userCanAccessValue((string) $risk['owner'])
-    ));
-}
 
 $filteredRisks = array_values(array_filter(
     $risks,
@@ -295,22 +283,20 @@ foreach ($risks as $risk) {
 $roadmapStatement = $pdo->prepare(
     'SELECT id, phase, detail, status, sequence
      FROM roadmaps
+     WHERE project_key = :project_key
      ORDER BY sequence ASC, id ASC'
 );
-$roadmapStatement->execute();
+$roadmapStatement->execute([':project_key' => $activeProjectKey]);
 $roadmapItems = $roadmapStatement->fetchAll();
 
 $raciStatement = $pdo->prepare(
     'SELECT id, activity, responsible, accountable, consulted, informed, sequence
      FROM raci_matrix
+     WHERE project_key = :project_key
      ORDER BY sequence ASC, id ASC'
 );
-$raciStatement->execute();
+$raciStatement->execute([':project_key' => $activeProjectKey]);
 $raciRows = $raciStatement->fetchAll();
-
-if (!canManageModule('raci') && !canManageModule('*') && !userCanAccessValue('*')) {
-    $raciRows = [];
-}
 
 $picStatement = $pdo->query(
     'SELECT id, name, person_name, role_label, updated_at
@@ -365,26 +351,21 @@ $filteredPicRows = array_values(array_filter(
 $auditStatement = $pdo->prepare(
     'SELECT module, action, entity_label, performed_by, created_at
      FROM audit_logs
+     WHERE project_key = :project_key
      ORDER BY created_at DESC, id DESC
      LIMIT 8'
 );
-$auditStatement->execute();
+$auditStatement->execute([':project_key' => $activeProjectKey]);
 $recentAuditLogs = $auditStatement->fetchAll();
 
 $issueStatement = $pdo->prepare(
     'SELECT id, code, category, description, priority, level, target_resolve, pic, status
      FROM issue_logs
+     WHERE project_key = :project_key
      ORDER BY id ASC'
 );
-$issueStatement->execute();
+$issueStatement->execute([':project_key' => $activeProjectKey]);
 $issueLogs = $issueStatement->fetchAll();
-
-if (!userCanAccessValue('*')) {
-    $issueLogs = array_values(array_filter(
-        $issueLogs,
-        static fn (array $issue): bool => userCanAccessValue((string) $issue['pic'])
-    ));
-}
 
 $canManageTasks = canManageModule('tasks');
 $canManageMilestones = canManageModule('milestones');
@@ -460,31 +441,31 @@ $navigationItems = [
     [
         'id' => 'dashboard',
         'label' => 'Ringkasan Proyek',
-        'description' => 'Ringkasan grafik dan tabel status implementasi perubahan tarif TransJakarta.',
+        'description' => 'Ringkasan grafik dan tabel status implementasi proyek aktif.',
     ],
     [
         'id' => 'peta-jalan',
         'label' => 'Peta Jalan Eksekutif',
-        'description' => 'Tahapan eksekutif implementasi kenaikan tarif berdasarkan roadmap proyek.',
+        'description' => 'Tahapan eksekutif berdasarkan roadmap proyek aktif.',
     ],
     [
         'id' => 'linimasa-teknis',
         'label' => 'Linimasa Teknis',
-        'description' => 'FSD, development, SIT, UAT, PTR, dan deployment implementasi tarif TJ.',
+        'description' => 'FSD, development, SIT, UAT, PTR, dan deployment proyek aktif.',
     ],
     [
         'id' => 'bisnis-operasional',
         'label' => 'Linimasa Bisnis & Nonteknis',
-        'description' => 'BRD, governance, kebijakan, kesiapan operator, komunikasi, dan RACI project tarif TJ.',
+        'description' => 'BRD, governance, kesiapan operasional, komunikasi, dan RACI proyek aktif.',
     ],
     [
         'id' => 'daftar-risiko',
         'label' => 'Daftar Risiko',
-        'description' => 'Daftar risiko dan log isu utama project kenaikan tarif TransJakarta.',
+        'description' => 'Daftar risiko dan log isu utama proyek aktif.',
     ],
 ];
 
-$pageTitle = 'Ringkasan Proyek PMO | Kenaikan Tarif TJ';
+$pageTitle = 'Ringkasan Proyek PMO';
 
 function formatStatusClass(string $status): string
 {
@@ -1201,6 +1182,33 @@ $dashboardRows = [
     ),
 ];
 
+/* Grafik TAJ selalu dihitung dari aktivitas TAJ yang tersimpan di database. */
+if ($activeProjectKey === 'taj') {
+    $dashboardRows = array_map(
+        static function (array $task): array {
+            $trafficStatus = match ((string) $task['status']) {
+                'Terlambat' => 'red',
+                'Sedang Berjalan', 'Menunggu' => 'yellow',
+                'Selesai' => 'green',
+                default => 'black',
+            };
+
+            return dashboardRow(
+                (string) $task['workstream'],
+                'Timeline Terminal Angkutan Jalan',
+                (string) $task['name'],
+                (string) $task['pic'],
+                date('d M Y', strtotime((string) $task['start_date'])),
+                date('d M Y', strtotime((string) $task['end_date'])),
+                $trafficStatus,
+                (int) $task['progress'],
+                (string) ($task['notes'] ?? '')
+            );
+        },
+        $tasks
+    );
+}
+
 /* PTO adalah kelompok operator, bukan PIC yang dapat ditindaklanjuti. */
 $dashboardPicMappings = [
     'PTO' => 'TJ, LRTJ, MRTJ',
@@ -1472,15 +1480,15 @@ require __DIR__ . '/includes/sidebar.php';
     <div class="dashboard">
         <header class="topbar" data-animate>
             <div class="topbar__heading">
-                <p class="topbar__eyebrow">PMO Perubahan Tarif TransJakarta</p>
+                <p class="topbar__eyebrow">PMO <?= htmlspecialchars($activeProject['short_label'], ENT_QUOTES, 'UTF-8'); ?></p>
                 <h2 id="pageTitleHeading">Ringkasan Proyek</h2>
-                <p id="pageTitleDescription">Ringkasan grafik dan tabel status implementasi. Detail roadmap, timeline, risk, issue, RACI, dan data pendukung tetap tersedia di menu lain.</p>
+                <p id="pageTitleDescription">Ringkasan grafik dan tabel status <?= htmlspecialchars(strtolower($activeProject['description']), ENT_QUOTES, 'UTF-8'); ?> Detail roadmap, timeline, risiko, issue, RACI, dan data pendukung tersedia di menu lain.</p>
             </div>
             <div class="topbar__controls">
                 <div class="topbar__meta-group">
                     <div class="topbar__meta-card">
                         <span class="topbar__meta-label">Data per</span>
-                        <strong>17 Jul 2026</strong>
+                        <strong><?= htmlspecialchars($projectSnapshotDate, ENT_QUOTES, 'UTF-8'); ?></strong>
                     </div>
                     <div class="topbar__meta-card">
                         <span class="topbar__meta-label">Pengguna aktif</span>
@@ -1514,7 +1522,7 @@ require __DIR__ . '/includes/sidebar.php';
                     <div class="high-level-dashboard__intro">
                         <div>
                             <p class="dashboard-chart-card__eyebrow">Ringkasan Eksekutif</p>
-                            <h3 id="highLevelDashboardTitle" class="panel__title">Kondisi Implementasi Tarif TJ</h3>
+                            <h3 id="highLevelDashboardTitle" class="panel__title"><?= htmlspecialchars($projectDashboardTitle, ENT_QUOTES, 'UTF-8'); ?></h3>
                             <p class="section-subtitle">Arahkan kursor untuk ringkasan, lalu klik grafik atau kategori untuk melihat detail aktivitas dan PIC.</p>
                         </div>
                     </div>
@@ -1641,7 +1649,7 @@ require __DIR__ . '/includes/sidebar.php';
                     <div class="dashboard-summary-strip__main">
 
                         <span class="dashboard-summary-strip__label">
-                            Status implementasi kenaikan tarif TJ
+                            Status implementasi <?= htmlspecialchars($activeProject['short_label'], ENT_QUOTES, 'UTF-8'); ?>
                         </span>
 
                         <strong class="dashboard-summary-strip__value">
@@ -2223,7 +2231,7 @@ require __DIR__ . '/includes/sidebar.php';
                     <div class="panel__header">
                         <div>
                             <h3 class="panel__title">Executive Roadmap</h3>
-                            <p class="section-subtitle">Fase besar implementasi tarif TJ dari perencanaan sampai kesiapan operasional.</p>
+                            <p class="section-subtitle">Fase besar proyek aktif dari perencanaan sampai kesiapan operasional.</p>
                         </div>
                         <div class="topbar__controls">
                             <?php if ($canManageRoadmaps): ?>
@@ -2264,7 +2272,7 @@ require __DIR__ . '/includes/sidebar.php';
                     <div class="panel__header">
                         <div>
                             <h3 class="panel__title">Timeline Teknis</h3>
-                            <p class="section-subtitle">Aktivitas FSD, development, integrasi, SIT, UAT, PTR, dan deployment perubahan tarif TJ.</p>
+                            <p class="section-subtitle">Aktivitas FSD, development, integrasi, SIT, UAT, PTR, dan deployment proyek aktif.</p>
                         </div>
                         <div class="topbar__controls">
                             <?php if ($canManageMilestones): ?>
@@ -2334,7 +2342,7 @@ require __DIR__ . '/includes/sidebar.php';
                         <div class="panel__header">
                             <div>
                             <h3 class="panel__title">Timeline Bisnis &amp; Nonteknis</h3>
-                            <p class="section-subtitle">Aktivitas BRD, governance, kebijakan, kesiapan operator, settlement, dan komunikasi untuk project tarif TJ.</p>
+                            <p class="section-subtitle">Aktivitas BRD, governance, kesiapan operasional, settlement, dan komunikasi proyek aktif.</p>
                             </div>
                         </div>
                         <div class="status-summary">
@@ -2353,7 +2361,7 @@ require __DIR__ . '/includes/sidebar.php';
                         <div class="panel__header">
                             <div>
                                 <h3 class="panel__title">Aktivitas Bisnis &amp; Nonteknis</h3>
-                                <p class="section-subtitle">Daftar aktivitas non-teknis untuk menjaga kesiapan organisasi, operasional, dan publikasi project tarif TJ.</p>
+                                <p class="section-subtitle">Daftar aktivitas non-teknis untuk menjaga kesiapan organisasi, operasional, dan publikasi proyek aktif.</p>
                             </div>
                             <div class="topbar__controls">
                                 <?php if ($canManageTasks): ?>
@@ -2458,7 +2466,7 @@ require __DIR__ . '/includes/sidebar.php';
                         <div class="panel__header">
                             <div>
                                 <h3 class="panel__title">RACI Ringkas</h3>
-                                <p class="section-subtitle">Peran inti lintas instansi untuk keputusan dan eksekusi aktivitas project tarif TJ.</p>
+                                <p class="section-subtitle">Peran inti lintas instansi untuk keputusan dan eksekusi aktivitas proyek aktif.</p>
                             </div>
                             <div class="topbar__controls">
                                 <a href="/raci/create" class="action-button action-button--primary">Tambah RACI</a>
@@ -2511,7 +2519,7 @@ require __DIR__ . '/includes/sidebar.php';
                         <div class="panel__header">
                             <div>
                                 <h3 class="panel__title">Risk Register</h3>
-                                <p class="section-subtitle">Risiko utama dan issue log project kenaikan tarif TJ dalam satu tampilan review.</p>
+                                <p class="section-subtitle">Risiko utama dan issue log proyek aktif dalam satu tampilan review.</p>
                             </div>
                             <div class="topbar__controls">
                                 <?php if ($canManageRisks): ?>
@@ -2663,7 +2671,7 @@ require __DIR__ . '/includes/sidebar.php';
             <section class="master-pic-hero">
                 <div class="master-pic-hero__content">
                     <p class="master-pic-hero__eyebrow">Utilitas Admin</p>
-                    <h3>Area pendukung project tarif TJ</h3>
+                    <h3>Area pendukung proyek aktif</h3>
                     <p>Bagian ini dipakai untuk ekspor ringkasan, pengecekan hosting, audit trail, dan master PIC tanpa mengganggu fokus pembacaan dashboard utama.</p>
                 </div>
                 <div class="master-pic-hero__actions">
@@ -2684,7 +2692,7 @@ require __DIR__ . '/includes/sidebar.php';
                     <div class="panel__header">
                         <div>
                             <h3 class="panel__title">Master PIC</h3>
-                            <p class="section-subtitle">Kelola PIC terpusat yang dipakai di kegiatan dan milestone project tarif TJ.</p>
+                            <p class="section-subtitle">Kelola PIC terpusat yang dipakai di kegiatan dan milestone proyek aktif.</p>
                         </div>
                     </div>
                     <form method="get" action="/" class="filter-toolbar">
@@ -2806,7 +2814,7 @@ require __DIR__ . '/includes/sidebar.php';
         <?php endif; ?>
 
         <footer class="page-footer">
-            Dashboard PMO Implementasi Perubahan Tarif TransJakarta untuk PT JakLingko Indonesia.
+            Dashboard PMO untuk PT Jakarta Lingko Indonesia.
         </footer>
     </div>
 </main>

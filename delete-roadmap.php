@@ -27,11 +27,12 @@ if (!$roadmapId) {
 }
 
 $pdo = getDatabaseConnection();
-$roadmapStatement = $pdo->prepare('SELECT phase, status, sequence FROM roadmaps WHERE id = :id LIMIT 1');
-$roadmapStatement->execute([':id' => $roadmapId]);
+$activeProjectKey = getActiveProjectKey();
+$roadmapStatement = $pdo->prepare('SELECT phase, status, sequence FROM roadmaps WHERE id = :id AND project_key = :project_key LIMIT 1');
+$roadmapStatement->execute([':id' => $roadmapId, ':project_key' => $activeProjectKey]);
 $roadmap = $roadmapStatement->fetch();
-$delete = $pdo->prepare('DELETE FROM roadmaps WHERE id = :id');
-$delete->execute([':id' => $roadmapId]);
+$delete = $pdo->prepare('DELETE FROM roadmaps WHERE id = :id AND project_key = :project_key');
+$delete->execute([':id' => $roadmapId, ':project_key' => $activeProjectKey]);
 if ($delete->rowCount() > 0 && is_array($roadmap)) {
     writeAuditLog($pdo, 'Peta Jalan', 'delete', (string) $roadmap['phase'], [
         'status' => (string) $roadmap['status'],

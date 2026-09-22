@@ -46,7 +46,7 @@ if ($requestMethod === 'POST') {
         </div>
         <div class="auth-copy">
             <h2>Masuk ke sistem</h2>
-            <p>Gunakan akun internal untuk mengakses ringkasan implementasi perubahan tarif TransJakarta.</p>
+            <p>Gunakan akun internal untuk mengakses ringkasan proyek EIPTJ dan Terminal Angkutan Jalan.</p>
         </div>
 
         <?php if ($errorMessage !== ''): ?>

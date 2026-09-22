@@ -10,6 +10,7 @@ require_once __DIR__ . '/config/pic.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 $pageTitle = 'Dashboard PMO | Tambah Milestone';
 $errorMessage = '';
@@ -44,12 +45,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $errorMessage = 'Akun Anda tidak memiliki izin untuk menambah milestone pada PIC ini.';
         } else {
             $insertStatement = $pdo->prepare(
-                'INSERT INTO milestones (name, target_date, status, pic, created_at, updated_at)
-                 VALUES (:name, :target_date, :status, :pic, :created_at, :updated_at)'
+                'INSERT INTO milestones (project_key, name, target_date, status, pic, created_at, updated_at)
+                 VALUES (:project_key, :name, :target_date, :status, :pic, :created_at, :updated_at)'
             );
 
             $timestamp = date('Y-m-d H:i:s');
             $insertStatement->execute([
+                ':project_key' => $activeProjectKey,
                 ':name' => $formData['name'],
                 ':target_date' => $formData['target_date'],
                 ':status' => $formData['status'],

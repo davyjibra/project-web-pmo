@@ -211,6 +211,31 @@ $pdo->exec(
     )'
 );
 
+/* Setiap catatan operasional terikat pada satu proyek. Data lama adalah EIPTJ. */
+$projectScopedTables = [
+    'tasks',
+    'milestones',
+    'risks',
+    'roadmaps',
+    'raci_matrix',
+    'issue_logs',
+    'audit_logs',
+];
+
+foreach ($projectScopedTables as $projectScopedTable) {
+    $columns = $pdo->query("PRAGMA table_info($projectScopedTable)")->fetchAll();
+    $columnNames = array_map(
+        static fn (array $column): string => (string) ($column['name'] ?? ''),
+        $columns
+    );
+
+    if (!in_array('project_key', $columnNames, true)) {
+        $pdo->exec(
+            "ALTER TABLE $projectScopedTable ADD COLUMN project_key TEXT NOT NULL DEFAULT 'eiptj'"
+        );
+    }
+}
+
 
 /*
 |--------------------------------------------------------------------------
@@ -223,20 +248,12 @@ $pdo->exec(
 |
 */
 
-$pdo->exec(
-    'CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_code_unique
-     ON tasks (code)'
-);
-
-$pdo->exec(
-    'CREATE UNIQUE INDEX IF NOT EXISTS idx_risks_code_unique
-     ON risks (code)'
-);
-
-$pdo->exec(
-    'CREATE UNIQUE INDEX IF NOT EXISTS idx_issue_logs_code_unique
-     ON issue_logs (code)'
-);
+$pdo->exec('DROP INDEX IF EXISTS idx_tasks_code_unique');
+$pdo->exec('DROP INDEX IF EXISTS idx_risks_code_unique');
+$pdo->exec('DROP INDEX IF EXISTS idx_issue_logs_code_unique');
+$pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_project_code_unique ON tasks (project_key, code)');
+$pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_risks_project_code_unique ON risks (project_key, code)');
+$pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_issue_logs_project_code_unique ON issue_logs (project_key, code)');
 
 
 /*
@@ -365,6 +382,144 @@ $picCount = (int) $pdo
 $issueLogCount = (int) $pdo
     ->query('SELECT COUNT(*) FROM issue_logs')
     ->fetchColumn();
+
+
+/*
+|--------------------------------------------------------------------------
+| DATA AWAL: TERMINAL ANGKUTAN JALAN
+|--------------------------------------------------------------------------
+| Timeline bersumber dari materi rapat DISHUB - TAJ - JLI, 24 Agustus 2026.
+| PIC TAJ disederhanakan hanya menjadi DISHUB dan JLI sesuai arahan PMO.
+*/
+
+$tajTaskCountStatement = $pdo->prepare(
+    "SELECT COUNT(*) FROM tasks WHERE project_key = 'taj'"
+);
+$tajTaskCountStatement->execute();
+
+if ((int) $tajTaskCountStatement->fetchColumn() === 0) {
+    $tajTaskInsert = $pdo->prepare(
+        'INSERT INTO tasks (
+            project_key, code, name, workstream, pic, start_date, end_date,
+            status, progress, priority, notes, created_at, updated_at
+        ) VALUES (
+            :project_key, :code, :name, :workstream, :pic, :start_date, :end_date,
+            :status, :progress, :priority, :notes, :created_at, :updated_at
+        )'
+    );
+
+    $tajTasks = [
+        ['TAJ-01', 'Final negosiasi dan rilis PO', 'Bisnis & Nonteknis', 'DISHUB', '2026-09-01', '2026-09-06'],
+        ['TAJ-02', 'PT Sepakat merilis PO ke JLI', 'Bisnis & Nonteknis', 'DISHUB', '2026-09-07', '2026-09-13'],
+        ['TAJ-03', 'JLI dan partner produksi sesuai PO', 'Teknis', 'JLI', '2026-09-07', '2026-11-15'],
+        ['TAJ-04', 'Proses pembuatan rekening bank', 'Bisnis & Nonteknis', 'DISHUB', '2026-09-01', '2026-09-13'],
+        ['TAJ-05', 'Proses pembuatan merchant', 'Bisnis & Nonteknis', 'DISHUB', '2026-09-14', '2026-09-30'],
+        ['TAJ-06', 'Proses peminjaman KUE dan SAM Dev', 'Teknis', 'DISHUB', '2026-09-21', '2026-09-30'],
+        ['TAJ-07', 'Membangun akseptansi KUE', 'Teknis', 'JLI', '2026-10-01', '2026-11-08'],
+        ['TAJ-08', 'SIT dan UAT bersama TAJ', 'Teknis', 'JLI', '2026-11-01', '2026-11-15'],
+        ['TAJ-09', 'PTR', 'Teknis', 'JLI', '2026-11-16', '2026-11-22'],
+        ['TAJ-10', 'Pekerjaan sipil dan infrastruktur', 'Teknis', 'JLI', '2026-10-05', '2026-11-08'],
+        ['TAJ-11', 'Instalasi infrastruktur di kantor terminal', 'Teknis', 'JLI', '2026-10-12', '2026-11-08'],
+        ['TAJ-12', 'Instalasi perangkat akses dan AFC', 'Teknis', 'JLI', '2026-11-01', '2026-11-22'],
+        ['TAJ-13', 'Pelatihan petugas TAJ', 'Bisnis & Nonteknis', 'JLI', '2026-12-01', '2026-12-06'],
+        ['TAJ-14', 'BAST proyek', 'Bisnis & Nonteknis', 'DISHUB', '2026-12-07', '2026-12-13'],
+    ];
+
+    $timestamp = date('Y-m-d H:i:s');
+    foreach ($tajTasks as [$code, $name, $workstream, $pic, $startDate, $endDate]) {
+        $tajTaskInsert->execute([
+            ':project_key' => 'taj',
+            ':code' => $code,
+            ':name' => $name,
+            ':workstream' => $workstream,
+            ':pic' => $pic,
+            ':start_date' => $startDate,
+            ':end_date' => $endDate,
+            ':status' => 'Belum Dimulai',
+            ':progress' => 0,
+            ':priority' => 3,
+            ':notes' => 'Rencana awal berdasarkan timeline rapat. Perbarui status setelah konfirmasi PIC.',
+            ':created_at' => $timestamp,
+            ':updated_at' => $timestamp,
+        ]);
+    }
+}
+
+/* Risalah rapat 24 Agustus 2026: target dan ketergantungan pelaksanaan TAJ. */
+$tajMilestoneCount = $pdo->query(
+    "SELECT COUNT(*) FROM milestones WHERE project_key = 'taj'"
+)->fetchColumn();
+
+if ((int) $tajMilestoneCount === 0) {
+    $tajMilestoneInsert = $pdo->prepare(
+        'INSERT INTO milestones (
+            project_key, name, target_date, status, pic, created_at, updated_at
+        ) VALUES (
+            :project_key, :name, :target_date, :status, :pic, :created_at, :updated_at
+        )'
+    );
+
+    $tajMilestones = [
+        ['Dokumen e-Procurement dan material list selesai', '2026-08-28', 'Dalam Review', 'JLI'],
+        ['Kurasi produk digitalisasi terminal dan tautan e-Proc selesai', '2026-09-03', 'Dalam Review', 'DISHUB'],
+        ['Pemilihan produk e-Procurement dan negosiasi', '2026-09-09', 'Dalam Review', 'DISHUB'],
+        ['PO dikirim ke JLI untuk memulai proses', '2026-09-10', 'Dalam Review', 'DISHUB'],
+        ['Pembukaan rekening dan pengurusan AM Card, MID, serta EDC', '2026-09-30', 'Sedang Berjalan', 'DISHUB'],
+        ['Pekerjaan, testing SIT/UAT, dan implementasi terminal selesai', '2026-12-04', 'Belum Dimulai', 'JLI'],
+        ['PTR sampai transaksi bank', '2026-12-05', 'Belum Dimulai', 'JLI'],
+        ['BAST pekerjaan dan proses invoicing', '2026-12-10', 'Belum Dimulai', 'DISHUB'],
+    ];
+
+    $timestamp = date('Y-m-d H:i:s');
+    foreach ($tajMilestones as [$name, $targetDate, $status, $pic]) {
+        $tajMilestoneInsert->execute([
+            ':project_key' => 'taj',
+            ':name' => $name,
+            ':target_date' => $targetDate,
+            ':status' => $status,
+            ':pic' => $pic,
+            ':created_at' => $timestamp,
+            ':updated_at' => $timestamp,
+        ]);
+    }
+}
+
+$tajRoadmapCount = $pdo->query(
+    "SELECT COUNT(*) FROM roadmaps WHERE project_key = 'taj'"
+)->fetchColumn();
+
+if ((int) $tajRoadmapCount === 0) {
+    $tajRoadmapInsert = $pdo->prepare(
+        'INSERT INTO roadmaps (
+            project_key, phase, detail, status, sequence, created_at, updated_at
+        ) VALUES (
+            :project_key, :phase, :detail, :status, :sequence, :created_at, :updated_at
+        )'
+    );
+
+    $tajRoadmapItems = [
+        ['Dokumen pengadaan', '26-28 Agustus 2026: JLI dan partner menyelesaikan dokumen e-Procurement, template onboarding, dan material list component.', 'Selesai'],
+        ['Kurasi dan pemilihan', '31 Agustus-9 September 2026: kurasi produk digitalisasi terminal, pencarian produk e-Proc, dan negosiasi.', 'Sedang Berjalan'],
+        ['PO ke JLI', '9-10 September 2026: TAJ menandatangani negosiasi dan PT STN menerbitkan PO ke JLI.', 'Sedang Berjalan'],
+        ['Pekerjaan dan pengujian', '11 September-4 Desember 2026: JLI bersama partner melakukan pekerjaan, SIT, UAT, dan implementasi Terminal Tanah Merdeka.', 'Belum Dimulai'],
+        ['Kesiapan rekening', '11-30 September 2026: pembukaan rekening dan pengurusan penerima AM Card, MID, serta EDC.', 'Sedang Berjalan'],
+        ['PTR dan BAST', '4-10 Desember 2026: PTR sampai transaksi bank, BAST pekerjaan, lalu proses invoicing.', 'Belum Dimulai'],
+        ['Ketergantungan utama', 'Target implementasi dan BAST 10 Desember 2026 bergantung pada kontrak atau PO TAJ melalui e-Procurement.', 'Menunggu'],
+    ];
+
+    $timestamp = date('Y-m-d H:i:s');
+    foreach ($tajRoadmapItems as $sequence => [$phase, $detail, $status]) {
+        $tajRoadmapInsert->execute([
+            ':project_key' => 'taj',
+            ':phase' => $phase,
+            ':detail' => $detail,
+            ':status' => $status,
+            ':sequence' => $sequence + 1,
+            ':created_at' => $timestamp,
+            ':updated_at' => $timestamp,
+        ]);
+    }
+}
 
 
 /*

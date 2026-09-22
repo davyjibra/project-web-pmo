@@ -9,6 +9,7 @@ require_once __DIR__ . '/config/audit.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 $pageTitle = 'Dashboard PMO | Edit Peta Jalan';
 $errorMessage = '';
@@ -21,8 +22,8 @@ if (!$roadmapId) {
     exit;
 }
 
-$stmt = $pdo->prepare('SELECT * FROM roadmaps WHERE id = :id LIMIT 1');
-$stmt->execute([':id' => $roadmapId]);
+$stmt = $pdo->prepare('SELECT * FROM roadmaps WHERE id = :id AND project_key = :project_key LIMIT 1');
+$stmt->execute([':id' => $roadmapId, ':project_key' => $activeProjectKey]);
 $roadmap = $stmt->fetch();
 
 if (!$roadmap) {

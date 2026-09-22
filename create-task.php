@@ -10,6 +10,7 @@ require_once __DIR__ . '/config/pic.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 $pageTitle = 'Dashboard PMO | Tambah Kegiatan';
 $errorMessage = '';
@@ -63,11 +64,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errorMessage = 'Status selesai harus memiliki progres 100.';
 } else {
     $duplicateStatement = $pdo->prepare(
-        'SELECT COUNT(*) FROM tasks WHERE code = :code'
+        'SELECT COUNT(*) FROM tasks WHERE code = :code AND project_key = :project_key'
     );
 
     $duplicateStatement->execute([
         ':code' => $formData['code'],
+        ':project_key' => $activeProjectKey,
     ]);
 
     if ((int) $duplicateStatement->fetchColumn() > 0) {
@@ -75,10 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $insertStatement = $pdo->prepare(
             'INSERT INTO tasks (
-                code, name, workstream, pic, start_date, end_date,
+                project_key, code, name, workstream, pic, start_date, end_date,
                 status, progress, priority, notes, created_at, updated_at
             ) VALUES (
-                :code, :name, :workstream, :pic, :start_date, :end_date,
+                :project_key, :code, :name, :workstream, :pic, :start_date, :end_date,
                 :status, :progress, :priority, :notes, :created_at, :updated_at
             )'
         );
@@ -86,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $timestamp = date('Y-m-d H:i:s');
 
         $insertStatement->execute([
+            ':project_key' => $activeProjectKey,
             ':code' => $formData['code'],
             ':name' => $formData['name'],
             ':workstream' => $formData['workstream'],

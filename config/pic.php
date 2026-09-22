@@ -8,6 +8,17 @@ function getPicOptions(PDO $pdo): array
 
     $options = $statement->fetchAll();
 
+    if (isTajProject()) {
+        $options = array_values(array_filter(
+            $options,
+            static fn (array $row): bool => in_array(
+                (string) ($row['name'] ?? ''),
+                ['DISHUB', 'JLI'],
+                true
+            )
+        ));
+    }
+
     if (userCanAccessValue('*')) {
         return $options;
     }

@@ -10,6 +10,7 @@ requireModulePermission('*');
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $today = date('Y-m-d');
 
 $statement = $pdo->prepare(
@@ -28,13 +29,14 @@ $statement = $pdo->prepare(
         progress,
         priority
     FROM tasks
+    WHERE project_key = :project_key
     ORDER BY priority DESC, end_date ASC'
 );
-$statement->execute([':today' => $today]);
+$statement->execute([':today' => $today, ':project_key' => $activeProjectKey]);
 $rows = $statement->fetchAll();
 
 header('Content-Type: text/csv; charset=UTF-8');
-header('Content-Disposition: attachment; filename="laporan-pmo-transjakarta.csv"');
+header('Content-Disposition: attachment; filename="laporan-pmo-' . $activeProjectKey . '.csv"');
 
 $output = fopen('php://output', 'wb');
 fwrite($output, "\xEF\xBB\xBF");

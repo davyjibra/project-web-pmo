@@ -9,6 +9,7 @@ require_once __DIR__ . '/config/audit.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 $pageTitle = 'Dashboard PMO | Tambah RACI';
 $errorMessage = '';
@@ -42,11 +43,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $errorMessage = 'Mohon lengkapi data RACI dengan benar.';
         } else {
             $stmt = $pdo->prepare(
-                'INSERT INTO raci_matrix (activity, responsible, accountable, consulted, informed, sequence, created_at, updated_at)
-                 VALUES (:activity, :responsible, :accountable, :consulted, :informed, :sequence, :created_at, :updated_at)'
+                'INSERT INTO raci_matrix (project_key, activity, responsible, accountable, consulted, informed, sequence, created_at, updated_at)
+                 VALUES (:project_key, :activity, :responsible, :accountable, :consulted, :informed, :sequence, :created_at, :updated_at)'
             );
             $timestamp = date('Y-m-d H:i:s');
             $stmt->execute([
+                ':project_key' => $activeProjectKey,
                 ':activity' => $formData['activity'],
                 ':responsible' => $formData['responsible'],
                 ':accountable' => $formData['accountable'],

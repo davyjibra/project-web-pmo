@@ -10,6 +10,7 @@ require_once __DIR__ . '/config/audit.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 
 $pageTitle = 'Dashboard PMO | Tambah Risiko';
@@ -59,6 +60,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             !in_array($formData['status'], $allowedStatuses, true)
         ) {
             $errorMessage = 'Mohon lengkapi data risiko dengan benar.';
+        } elseif (!isAllowedProjectPic($formData['owner'])) {
+            $errorMessage = 'PIC proyek Terminal Angkutan Jalan hanya dapat diisi DISHUB atau JLI.';
         } elseif (!canManageScopedRecord('risks', $formData['owner'])) {
             $errorMessage = 'Akun Anda tidak memiliki izin untuk menambah risiko pada owner ini.';
         } else {
@@ -68,11 +71,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $duplicateStatement = $pdo->prepare(
                 'SELECT COUNT(*)
                  FROM risks
-                 WHERE code = :code'
+                 WHERE code = :code AND project_key = :project_key'
             );
 
             $duplicateStatement->execute([
                 ':code' => $formData['code'],
+                ':project_key' => $activeProjectKey,
             ]);
 
             $duplicateCount = (int) $duplicateStatement->fetchColumn();
@@ -82,6 +86,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             } else {
                 $insertStatement = $pdo->prepare(
                     'INSERT INTO risks (
+                        project_key,
                         code,
                         title,
                         category,
@@ -92,6 +97,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         created_at,
                         updated_at
                     ) VALUES (
+                        :project_key,
                         :code,
                         :title,
                         :category,
@@ -107,6 +113,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 $timestamp = date('Y-m-d H:i:s');
 
                 $insertStatement->execute([
+                    ':project_key' => $activeProjectKey,
                     ':code' => $formData['code'],
                     ':title' => $formData['title'],
                     ':category' => $formData['category'],

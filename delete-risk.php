@@ -27,8 +27,9 @@ if (!$riskId) {
 }
 
 $pdo = getDatabaseConnection();
-$riskStatement = $pdo->prepare('SELECT code, title, level, status, owner FROM risks WHERE id = :id LIMIT 1');
-$riskStatement->execute([':id' => $riskId]);
+$activeProjectKey = getActiveProjectKey();
+$riskStatement = $pdo->prepare('SELECT code, title, level, status, owner FROM risks WHERE id = :id AND project_key = :project_key LIMIT 1');
+$riskStatement->execute([':id' => $riskId, ':project_key' => $activeProjectKey]);
 $risk = $riskStatement->fetch();
 
 if (!is_array($risk)) {
@@ -39,8 +40,8 @@ if (!is_array($risk)) {
 
 requireScopedModulePermission('risks', (string) $risk['owner']);
 
-$deleteStatement = $pdo->prepare('DELETE FROM risks WHERE id = :id');
-$deleteStatement->execute([':id' => $riskId]);
+$deleteStatement = $pdo->prepare('DELETE FROM risks WHERE id = :id AND project_key = :project_key');
+$deleteStatement->execute([':id' => $riskId, ':project_key' => $activeProjectKey]);
 
 if ($deleteStatement->rowCount() > 0) {
     writeAuditLog($pdo, 'Risiko', 'delete', (string) $risk['code'] . ' - ' . (string) $risk['title'], [

@@ -34,6 +34,9 @@ $sidebarNavigationItems = isset($navigationItems) && is_array($navigationItems)
     ? $navigationItems
     : [];
 
+$sidebarProjectKey = getActiveProjectKey();
+$sidebarProject = getActiveProject();
+
 /*
 |--------------------------------------------------------------------------
 | ACTIVE MENU
@@ -83,12 +86,23 @@ if ($activeSidebarId === '' && $sidebarNavigationItems !== []) {
             </p>
 
             <h1 class="sidebar__company">
-                Kenaikan Tarif TJ
+                <?= htmlspecialchars((string) $sidebarProject['short_label'], ENT_QUOTES, 'UTF-8'); ?>
             </h1>
 
         </div>
 
     </div>
+
+    <form class="sidebar__project-switcher" method="get" action="/">
+        <label for="activeProject">Proyek aktif</label>
+        <select id="activeProject" name="project" onchange="this.form.submit()">
+            <?php foreach (PMO_PROJECTS as $projectKey => $project): ?>
+                <option value="<?= htmlspecialchars($projectKey, ENT_QUOTES, 'UTF-8'); ?>"<?= $sidebarProjectKey === $projectKey ? ' selected' : ''; ?>>
+                    <?= htmlspecialchars((string) $project['label'], ENT_QUOTES, 'UTF-8'); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </form>
 
     <!-- ========================================
          NAVIGATION

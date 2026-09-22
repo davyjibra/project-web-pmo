@@ -27,8 +27,9 @@ if (!$milestoneId) {
 }
 
 $pdo = getDatabaseConnection();
-$milestoneStatement = $pdo->prepare('SELECT name, target_date, status, pic FROM milestones WHERE id = :id LIMIT 1');
-$milestoneStatement->execute([':id' => $milestoneId]);
+$activeProjectKey = getActiveProjectKey();
+$milestoneStatement = $pdo->prepare('SELECT name, target_date, status, pic FROM milestones WHERE id = :id AND project_key = :project_key LIMIT 1');
+$milestoneStatement->execute([':id' => $milestoneId, ':project_key' => $activeProjectKey]);
 $milestone = $milestoneStatement->fetch();
 
 if (!is_array($milestone)) {
@@ -39,8 +40,8 @@ if (!is_array($milestone)) {
 
 requireScopedModulePermission('milestones', (string) $milestone['pic']);
 
-$deleteStatement = $pdo->prepare('DELETE FROM milestones WHERE id = :id');
-$deleteStatement->execute([':id' => $milestoneId]);
+$deleteStatement = $pdo->prepare('DELETE FROM milestones WHERE id = :id AND project_key = :project_key');
+$deleteStatement->execute([':id' => $milestoneId, ':project_key' => $activeProjectKey]);
 
 if ($deleteStatement->rowCount() > 0) {
     writeAuditLog($pdo, 'Milestone', 'delete', (string) $milestone['name'], [

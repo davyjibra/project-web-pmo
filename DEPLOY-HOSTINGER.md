@@ -31,7 +31,7 @@ Kalau hosting mendukung `PDO_SQLITE`, project bisa langsung memakai file itu.
 2. Buka `/system/check`.
 3. Pastikan hasil untuk `PDO SQLite`, `data/`, `data/sessions/`, dan `data/pmo.sqlite` tidak menunjukkan error.
 4. Lakukan uji tambah satu data kegiatan untuk memastikan database benar-benar bisa ditulis.
-5. Buka halaman `Ringkasan Tarif TJ` dan pastikan tiga kartu grafik persen tampil normal dengan warna `hijau / kuning / merah`.
+5. Buka halaman `Ringkasan Proyek` dan pastikan tiga kartu grafik persen tampil normal dengan warna `hijau / kuning / merah`.
 6. Pastikan blok `Status Project`, `Target Terdekat`, `PIC & Tanggung Jawab Utama`, dan `Isu Kritis Saat Ini` tampil normal.
 7. Scroll ke area admin bawah untuk memastikan `Master PIC` dan `Riwayat Perubahan Terbaru` tampil normal.
 8. Uji login memakai satu akun editor scoped dan satu akun `viewer` untuk memastikan permission berjalan sesuai role.

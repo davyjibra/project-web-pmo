@@ -27,11 +27,12 @@ if (!$raciId) {
 }
 
 $pdo = getDatabaseConnection();
-$raciStatement = $pdo->prepare('SELECT activity, responsible, accountable, sequence FROM raci_matrix WHERE id = :id LIMIT 1');
-$raciStatement->execute([':id' => $raciId]);
+$activeProjectKey = getActiveProjectKey();
+$raciStatement = $pdo->prepare('SELECT activity, responsible, accountable, sequence FROM raci_matrix WHERE id = :id AND project_key = :project_key LIMIT 1');
+$raciStatement->execute([':id' => $raciId, ':project_key' => $activeProjectKey]);
 $raci = $raciStatement->fetch();
-$delete = $pdo->prepare('DELETE FROM raci_matrix WHERE id = :id');
-$delete->execute([':id' => $raciId]);
+$delete = $pdo->prepare('DELETE FROM raci_matrix WHERE id = :id AND project_key = :project_key');
+$delete->execute([':id' => $raciId, ':project_key' => $activeProjectKey]);
 if ($delete->rowCount() > 0 && is_array($raci)) {
     writeAuditLog($pdo, 'Matriks RACI', 'delete', (string) $raci['activity'], [
         'responsible' => (string) $raci['responsible'],

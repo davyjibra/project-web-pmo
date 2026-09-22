@@ -11,6 +11,7 @@ require_once __DIR__ . '/config/pic.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 
 $pageTitle = 'Dashboard PMO | Edit Issue Log';
@@ -54,11 +55,12 @@ if (!$issueId) {
 }
 
 $statement = $pdo->prepare(
-    'SELECT * FROM issue_logs WHERE id = :id LIMIT 1'
+    'SELECT * FROM issue_logs WHERE id = :id AND project_key = :project_key LIMIT 1'
 );
 
 $statement->execute([
     ':id' => $issueId,
+    ':project_key' => $activeProjectKey,
 ]);
 
 $issue = $statement->fetch();
@@ -121,12 +123,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'SELECT COUNT(*)
                  FROM issue_logs
                  WHERE code = :code
-                   AND id != :id'
+                   AND id != :id
+                   AND project_key = :project_key'
             );
 
             $duplicateStatement->execute([
                 ':code' => $formData['code'],
                 ':id' => $issueId,
+                ':project_key' => $activeProjectKey,
             ]);
 
             $duplicateCount = (int) $duplicateStatement->fetchColumn();

@@ -28,8 +28,9 @@ if (!$issueId) {
 }
 
 $pdo = getDatabaseConnection();
-$statement = $pdo->prepare('SELECT code, category, pic, status FROM issue_logs WHERE id = :id LIMIT 1');
-$statement->execute([':id' => $issueId]);
+$activeProjectKey = getActiveProjectKey();
+$statement = $pdo->prepare('SELECT code, category, pic, status FROM issue_logs WHERE id = :id AND project_key = :project_key LIMIT 1');
+$statement->execute([':id' => $issueId, ':project_key' => $activeProjectKey]);
 $issue = $statement->fetch();
 
 if (!is_array($issue)) {
@@ -40,8 +41,8 @@ if (!is_array($issue)) {
 
 requireScopedModulePermission('issues', (string) $issue['pic']);
 
-$deleteStatement = $pdo->prepare('DELETE FROM issue_logs WHERE id = :id');
-$deleteStatement->execute([':id' => $issueId]);
+$deleteStatement = $pdo->prepare('DELETE FROM issue_logs WHERE id = :id AND project_key = :project_key');
+$deleteStatement->execute([':id' => $issueId, ':project_key' => $activeProjectKey]);
 
 if ($deleteStatement->rowCount() > 0) {
     writeAuditLog($pdo, 'Issue Log', 'delete', (string) $issue['code'] . ' - ' . (string) $issue['category'], [

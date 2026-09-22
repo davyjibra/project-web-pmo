@@ -9,6 +9,7 @@ require_once __DIR__ . '/config/audit.php';
 require_once __DIR__ . '/database/initialize.php';
 
 $pdo = getDatabaseConnection();
+$activeProjectKey = getActiveProjectKey();
 $user = getAuthenticatedUser();
 $pageTitle = 'Dashboard PMO | Edit RACI';
 $errorMessage = '';
@@ -20,8 +21,8 @@ if (!$raciId) {
     exit;
 }
 
-$stmt = $pdo->prepare('SELECT * FROM raci_matrix WHERE id = :id LIMIT 1');
-$stmt->execute([':id' => $raciId]);
+$stmt = $pdo->prepare('SELECT * FROM raci_matrix WHERE id = :id AND project_key = :project_key LIMIT 1');
+$stmt->execute([':id' => $raciId, ':project_key' => $activeProjectKey]);
 $raci = $stmt->fetch();
 if (!$raci) {
     setFlashMessage('error', 'Data RACI tidak tersedia.');
