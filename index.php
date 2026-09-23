@@ -41,6 +41,7 @@ $taskStatement = $pdo->prepare(
         pic,
         start_date,
         end_date,
+        notes,
         CASE
             WHEN progress = 100 THEN "Selesai"
             WHEN end_date < :today AND progress < 100 THEN "Terlambat"
@@ -1196,6 +1197,32 @@ if ($activeProjectKey === 'taj') {
             return dashboardRow(
                 (string) $task['workstream'],
                 'Timeline Terminal Angkutan Jalan',
+                (string) $task['name'],
+                (string) $task['pic'],
+                date('d M Y', strtotime((string) $task['start_date'])),
+                date('d M Y', strtotime((string) $task['end_date'])),
+                $trafficStatus,
+                (int) $task['progress'],
+                (string) ($task['notes'] ?? '')
+            );
+        },
+        $tasks
+    );
+}
+
+if ($activeProjectKey === 'eiptj') {
+    $dashboardRows = array_map(
+        static function (array $task): array {
+            $trafficStatus = match ((string) $task['status']) {
+                'Terlambat' => 'red',
+                'Sedang Berjalan', 'Menunggu' => 'yellow',
+                'Selesai' => 'green',
+                default => 'black',
+            };
+
+            return dashboardRow(
+                (string) $task['workstream'],
+                trim((string) strtok((string) ($task['notes'] ?? ''), '.')) ?: 'Timeline DISHUB',
                 (string) $task['name'],
                 (string) $task['pic'],
                 date('d M Y', strtotime((string) $task['start_date'])),

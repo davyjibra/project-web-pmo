@@ -148,6 +148,13 @@ $pdo->exec(
     )'
 );
 
+$pdo->exec(
+    'CREATE TABLE IF NOT EXISTS data_imports (
+        source_key TEXT PRIMARY KEY,
+        imported_at TEXT NOT NULL
+    )'
+);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -382,6 +389,163 @@ $picCount = (int) $pdo
 $issueLogCount = (int) $pdo
     ->query('SELECT COUNT(*) FROM issue_logs')
     ->fetchColumn();
+
+
+/*
+|--------------------------------------------------------------------------
+| UPDATE MASTER DATA EIPTJ: TIMELINE DISHUB
+|--------------------------------------------------------------------------
+| Sumber: Perubahan Tarif TJ - Master Data.xlsx, sheet Timeline DISHUB.
+| Import ini menggantikan aktivitas Teknis lama satu kali agar data lama
+| tidak bercampur dengan master data terbaru.
+*/
+
+$eiptjTimelineSource = 'eiptj_timeline_dishub_2026_09_23';
+$eiptjTimelineImported = $pdo->prepare(
+    'SELECT COUNT(*) FROM data_imports WHERE source_key = :source_key'
+);
+$eiptjTimelineImported->execute([':source_key' => $eiptjTimelineSource]);
+
+if ((int) $eiptjTimelineImported->fetchColumn() === 0) {
+    $pdo->prepare(
+        "DELETE FROM tasks WHERE project_key = 'eiptj' AND workstream = 'Teknis'"
+    )->execute();
+
+    $eiptjTaskInsert = $pdo->prepare(
+        'INSERT INTO tasks (
+            project_key, code, name, workstream, pic, start_date, end_date,
+            status, progress, priority, notes, created_at, updated_at
+        ) VALUES (
+            :project_key, :code, :name, :workstream, :pic, :start_date, :end_date,
+            :status, :progress, :priority, :notes, :created_at, :updated_at
+        )'
+    );
+
+    $eiptjTechnicalTasks = [
+        ['Perencanaan', 'Final Requirement/Regulasi/BRD Approval', 'DISHUB', 46209, 46224, 50, 'Sedang Berjalan', 'Belum di TTD oleh stakeholder versi 1.4.'],
+        ['Perencanaan', 'Data Fare Matrix Transjakarta', 'TJ', 46218, 46224, 80, 'Sedang Berjalan', 'Distance Matrix, Shelter Code, Terminal ID, Data Halte, dan Bus Stop perlu diperbarui.'],
+        ['Perencanaan', 'Final Bisnis Proses Baru/Perubahan (use case positif dan negatif)', 'DISHUB, TJ, JLI', 46218, 46224, 90, 'Sedang Berjalan', 'FSD masih berjalan.'],
+        ['Design & Development (FSD/DEV)', 'L1 Device Acceptance KUE', 'JLI', 46213, 46229, 100, 'Selesai', 'Library dan dokumentasi integrasi untuk LRT, MRT, dan TJ sudah dikirimkan.'],
+        ['Design & Development (FSD/DEV)', 'L1 Device Acceptance QR STT', 'JLI', 46213, 46229, 100, 'Selesai', 'Selesai.'],
+        ['Design & Development (FSD/DEV)', 'L1 Device Acceptance ABT', 'JLI', 46213, 46348, 100, 'Selesai', 'Selesai.'],
+        ['Design & Development (FSD/DEV)', 'MaaS QR STT', 'JLI', 46213, 46234, 100, 'Selesai', 'Selesai.'],
+        ['Design & Development (FSD/DEV)', 'Tarif Langganan (Period Pass)', 'JLI', 46213, 46371, 10, 'Sedang Berjalan', 'Proses assessment, target Desember 2026.'],
+        ['Design & Development (FSD/DEV)', 'PAYG', 'JLI', 46296, 46371, 0, 'Belum Dimulai', 'Proses assessment, target minggu ke-3 atau ke-4 November 2026.'],
+        ['Design & Development (FSD/DEV)', 'CCHS', 'JLI', 46225, 46244, 50, 'Sedang Berjalan', 'Progres 7 September: KUE 95%, QR-STT 50%, ABT 0%.'],
+        ['Integrasi Sistem', 'Sinkronisasi dengan operator transportasi publik', 'JLI, TJ, LRTJ, MRTJ', 46227, 46229, 0, 'Belum Dimulai', 'Masih menunggu jadwal dan diskusi bisnis TJ dengan JLI.'],
+        ['Pengujian / Testing', 'SIT (Pengujian Integrasi)', 'JLI, TJ, LRTJ, MRTJ', 46230, 46239, 15, 'Sedang Berjalan', 'SIT internal KUE dan STT selesai 21 September 2026.'],
+        ['Pengujian / Testing', 'UAT (Pengujian Skema dan Bisnis Proses)', 'JLI, TJ, LRTJ, MRTJ, DISHUB', 46240, 46246, 0, 'Belum Dimulai', 'Menunggu kesiapan SIT.'],
+        ['Pengujian / Testing', 'PTR (Piloting/Uji Coba Terbatas)', 'JLI, TJ, LRTJ, MRTJ, DISHUB', 46247, 46261, 0, 'Belum Dimulai', 'Menunggu UAT.'],
+        ['Implementasi / Deployment', 'Deployment Tahap 0 (TransBandara, Halte BRT)', 'TJ', 46234, 46234, 0, 'Belum Dimulai', 'Menunggu kesiapan implementasi.'],
+        ['Implementasi / Deployment', 'Deployment Tahap 0 (BRT, MRT, dan LRTJ)', 'TJ, JLI', 46234, 46234, 0, 'Belum Dimulai', 'Menunggu kesiapan implementasi.'],
+        ['Implementasi / Deployment', 'Deployment Tahap I (1 BRT, 1 MRT, 1 LRT, 1 NBRT, 1 MT)', 'JLI, TJ, LRTJ, MRTJ', 46260, 46265, 0, 'Belum Dimulai', 'Menunggu PTR.'],
+        ['Implementasi / Deployment', 'Deployment Tahap II (BRT, NBRT, MT, MRT, LRTJ)', 'JLI, TJ, LRTJ, MRTJ', 46379, 46387, 0, 'Belum Dimulai', 'Menunggu tahap I.'],
+        ['Operational', 'Monitor Operasional', 'JLI, TJ, LRTJ, MRTJ', 46388, 46418, 0, 'Belum Dimulai', 'Menunggu deployment.'],
+    ];
+
+    $timestamp = date('Y-m-d H:i:s');
+    foreach ($eiptjTechnicalTasks as $index => [$phase, $name, $pic, $start, $end, $progress, $status, $notes]) {
+        $eiptjTaskInsert->execute([
+            ':project_key' => 'eiptj',
+            ':code' => 'EIPTJ-TEC-' . str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
+            ':name' => $name,
+            ':workstream' => 'Teknis',
+            ':pic' => $pic,
+            ':start_date' => excelSerialToDateString($start),
+            ':end_date' => excelSerialToDateString($end),
+            ':status' => $status,
+            ':progress' => $progress,
+            ':priority' => in_array($phase, ['Perencanaan', 'Integrasi Sistem', 'Pengujian / Testing'], true) ? 5 : 3,
+            ':notes' => $phase . '. ' . $notes,
+            ':created_at' => $timestamp,
+            ':updated_at' => $timestamp,
+        ]);
+    }
+
+    $pdo->prepare(
+        'INSERT INTO data_imports (source_key, imported_at) VALUES (:source_key, :imported_at)'
+    )->execute([
+        ':source_key' => $eiptjTimelineSource,
+        ':imported_at' => $timestamp,
+    ]);
+}
+
+$eiptjBusinessSource = 'eiptj_business_timeline_2026_09_23';
+$eiptjBusinessImported = $pdo->prepare(
+    'SELECT COUNT(*) FROM data_imports WHERE source_key = :source_key'
+);
+$eiptjBusinessImported->execute([':source_key' => $eiptjBusinessSource]);
+
+if ((int) $eiptjBusinessImported->fetchColumn() === 0) {
+    $pdo->prepare(
+        "DELETE FROM tasks WHERE project_key = 'eiptj' AND workstream = 'Bisnis & Nonteknis'"
+    )->execute();
+
+    $eiptjBusinessInsert = $pdo->prepare(
+        'INSERT INTO tasks (
+            project_key, code, name, workstream, pic, start_date, end_date,
+            status, progress, priority, notes, created_at, updated_at
+        ) VALUES (
+            :project_key, :code, :name, :workstream, :pic, :start_date, :end_date,
+            :status, :progress, :priority, :notes, :created_at, :updated_at
+        )'
+    );
+
+    $eiptjBusinessTasks = [
+        ['Governance & Project Alignment', 'Kick-off Project & Steering Committee', 'DISHUB', 46209, 46227, 50, 'Hanya MOM', 5],
+        ['Governance & Project Alignment', 'PMO & Working Group Lintas Instansi', 'DISHUB, TJ, LRTJ, MRTJ', 46223, 46234, 0, 'Belum terbentuk', 5],
+        ['Fare Policy & Business Rules', 'Finalisasi Kebijakan Tarif & Fare Matrix', 'DISHUB', 46223, 46227, 0, 'Hanya MOM', 5],
+        ['Fare Policy & Business Rules', 'Persetujuan Standar Sektor KUE & Tarif Integrasi', 'DISHUB, TJ, LRTJ, MRTJ', 46223, 46227, 60, 'Hanya MOM', 5],
+        ['Fare Policy & Business Rules', 'Persetujuan TOB & TOM Terintegrasi', 'DISHUB, TJ', 46223, 46227, 0, 'Belum jelas', 5],
+        ['Fare Policy & Business Rules', 'Persetujuan Business Rules TransBandara', 'DISHUB, TJ', 46223, 46230, 60, 'Hanya MOM', 4],
+        ['Fare Policy & Business Rules', 'Persetujuan Business Rules Tarif Angkutan Umum', 'DISHUB, TJ, LRTJ, MRTJ', 46223, 46264, 60, 'Hanya MOM', 4],
+        ['Fare Policy & Business Rules', 'Persetujuan Tanggal Implementasi', 'DISHUB', 46228, 46230, 0, 'Tanggal implementasi belum ditetapkan.', 5],
+        ['Operator Readiness', 'Rapat Penyelarasan Operator', 'DISHUB, TJ, LRTJ, MRTJ', 46223, 46227, 0, 'Menunggu konfirmasi TJ.', 5],
+        ['Operator Readiness', 'Kesepakatan Kesiapan Operasional Operator', 'DISHUB, TJ, LRTJ, MRTJ, JLI', 46223, 46261, 0, 'Kesepakatan bisnis proses belum final.', 5],
+        ['Transaction Readiness', 'Kesepakatan Migrasi Transaksi TB, NBRT & MT', 'DISHUB, TJ, JLI', 46223, 46230, 0, 'Menunggu konfirmasi TJ.', 5],
+        ['Transaction Readiness', 'Kesepakatan Migrasi Transaksi 9 Stasiun MRT Jakarta', 'DISHUB, MRTJ, JLI', 46223, 46261, 60, 'Menunggu konfirmasi MRT Jakarta.', 4],
+        ['Settlement Readiness', 'Settlement Non BRT (TOB/TOM)', 'TJ, LRTJ, MRTJ, JLI', 46227, 46259, 0, 'MID/TID perlu difinalisasi.', 4],
+        ['Settlement Readiness', 'Reconcile Non BRT (TOB/TOM)', 'TJ, LRTJ, MRTJ, JLI', 46227, 46259, 0, 'MID/TID perlu difinalisasi.', 4],
+        ['Communication & Change Management', 'Penyusunan Materi Sosialisasi Internal dan Eksternal', 'DISHUB, TJ, LRTJ, MRTJ, JLI', 46227, 46418, 20, 'Materi dalam penyelarasan.', 3],
+        ['Communication & Change Management', 'Penjadwalan & Inventarisasi Spot/Media Sosialisasi', 'DISHUB, TJ, LRTJ, MRTJ, JLI', 46227, 46418, 0, 'Belum dimulai.', 3],
+        ['Operational Readiness Review', 'Update Operational Procedure', 'TJ, LRTJ, MRTJ, JLI', 46230, 46350, 50, 'Pembaruan proses bisnis berjalan.', 4],
+        ['Operational Readiness Review', 'Update Incident Management SOP', 'TJ, LRTJ, MRTJ, JLI', 46230, 46350, 50, 'Pembaruan SOP berjalan.', 4],
+    ];
+
+    $timestamp = date('Y-m-d H:i:s');
+    foreach ($eiptjBusinessTasks as $index => [$phase, $name, $pic, $start, $end, $progress, $notes, $priority]) {
+        $eiptjBusinessInsert->execute([
+            ':project_key' => 'eiptj',
+            ':code' => 'EIPTJ-BUS-' . str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
+            ':name' => $name,
+            ':workstream' => 'Bisnis & Nonteknis',
+            ':pic' => $pic,
+            ':start_date' => excelSerialToDateString($start),
+            ':end_date' => excelSerialToDateString($end),
+            ':status' => $progress === 0 ? 'Belum Dimulai' : 'Sedang Berjalan',
+            ':progress' => $progress,
+            ':priority' => $priority,
+            ':notes' => $phase . '. ' . $notes,
+            ':created_at' => $timestamp,
+            ':updated_at' => $timestamp,
+        ]);
+    }
+
+    $pdo->prepare(
+        'INSERT INTO data_imports (source_key, imported_at) VALUES (:source_key, :imported_at)'
+    )->execute([
+        ':source_key' => $eiptjBusinessSource,
+        ':imported_at' => $timestamp,
+    ]);
+}
+
+/* Excel sumber menulis 31/11/2026; November hanya sampai tanggal 30. */
+$pdo->exec(
+    "UPDATE tasks
+     SET end_date = '2026-11-30'
+     WHERE project_key = 'eiptj'
+       AND code IN ('EIPTJ-BUS-17', 'EIPTJ-BUS-18')"
+);
 
 
 /*

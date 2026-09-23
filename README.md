@@ -15,6 +15,10 @@ menampilkan data dari proyek aktif. Data awal TAJ memuat 14 aktivitas periode
 September-Desember 2026 serta milestone dan peta jalan hasil risalah rapat
 24 Agustus 2026; PIC TAJ dibatasi pada **DISHUB** dan **JLI**.
 
+Data EIPTJ mengikuti master data terbaru: 19 aktivitas dari sheet **Timeline
+DISHUB** dan 18 aktivitas bisnis/nonteknis, lengkap dengan PIC, rentang
+tanggal, progres, status, dan catatan PMO.
+
 ## Fitur Utama
 
 - Multi-user login dengan role `Administrator`, `View Only`, dan editor scoped per instansi `DISHUB`, `TJ`, `LRTJ`, `MRTJ`, `JLI`, serta `JPAI/Jatelindo`.
