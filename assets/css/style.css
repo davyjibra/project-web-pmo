@@ -2095,21 +2095,37 @@ tbody tr:hover {
 }
 
 .high-level-dashboard__content {
-    grid-template-columns: 450px minmax(250px, 1fr);
-    gap: 16px;
-    margin-top: 14px;
+    grid-template-columns: 510px minmax(230px, 1fr);
+    gap: 26px;
+    align-items: center;
+    margin-top: 18px;
 }
 
 .dashboard-donut-pair {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.traffic-pie__group {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+    justify-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* Naikkan seluruh grup agar tooltip tidak tertutup anotasi grafik tetangga. */
+.traffic-pie__group:hover,
+.traffic-pie__group:focus-within {
+    z-index: 50;
 }
 
 .traffic-pie--interactive {
     position: relative;
-    width: 142px;
+    width: 154px;
     padding: 0;
     border: 0;
     cursor: pointer;
@@ -2118,15 +2134,71 @@ tbody tr:hover {
 
 .traffic-pie--interactive:hover,
 .traffic-pie--interactive:focus-visible {
+    z-index: 30;
     outline: none;
     transform: scale(1.035);
     box-shadow: inset 0 0 0 1px rgba(23, 50, 74, 0.06), 0 12px 22px rgba(18, 37, 56, 0.12);
 }
 
-.traffic-pie--stream {
-    width: 142px;
-    flex: 0 0 142px;
+.traffic-pie__legend-button:hover,
+.traffic-pie__legend-button:focus-visible,
+.area-health-card:hover,
+.area-health-card:focus-visible {
+    position: relative;
+    z-index: 30;
 }
+
+.traffic-pie--stream {
+    width: 154px;
+    flex: 0 0 154px;
+}
+
+/* Progres keseluruhan memakai pie penuh, bukan donut. */
+.traffic-pie--progress .traffic-pie__center {
+    width: 100%;
+    background: transparent;
+    box-shadow: none;
+}
+
+.traffic-pie--progress .traffic-pie__center strong,
+.traffic-pie--progress .traffic-pie__center span {
+    color: var(--text-main);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.traffic-pie__annotations {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 5px 8px;
+}
+
+.traffic-pie__annotation {
+    position: relative;
+    padding-left: 10px;
+    color: var(--text-soft);
+    font-size: 0.66rem;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.traffic-pie__annotation::before {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    border-left: 5px solid var(--text-main);
+    content: "";
+    transform: translateY(-50%);
+}
+
+.traffic-pie__annotation--red::before { border-left-color: #d94b4b; }
+.traffic-pie__annotation--yellow::before { border-left-color: #e5a51d; }
+.traffic-pie__annotation--green::before { border-left-color: #2d9a66; }
+.traffic-pie__annotation--black::before { border-left-color: #6f7f8d; }
 
 .traffic-pie--stream .traffic-pie__center strong {
     font-size: 0.82rem;
@@ -2170,14 +2242,20 @@ tbody tr:hover {
 }
 
 .traffic-pie__legend {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
 }
 
 .traffic-pie__legend-button {
-    min-height: 48px;
-    padding: 8px;
+    min-height: 52px;
+    padding: 10px 12px;
+    border-left: 3px solid transparent;
 }
+
+.traffic-pie__legend-button--red { border-left-color: #d94b4b; }
+.traffic-pie__legend-button--yellow { border-left-color: #e5a51d; }
+.traffic-pie__legend-button--green { border-left-color: #2d9a66; }
+.traffic-pie__legend-button--black { border-left-color: #6f7f8d; }
 
 .traffic-pie__legend-button small {
     display: none;
@@ -2222,7 +2300,7 @@ tbody tr:hover {
 .traffic-pie__legend-button[data-tooltip]::after,
 .area-health-card[data-tooltip]::after {
     position: absolute;
-    z-index: 4;
+    z-index: 40;
     left: 50%;
     bottom: calc(100% + 8px);
     width: max-content;
@@ -2277,6 +2355,19 @@ tbody tr:hover {
 @media (max-width: 520px) {
     .dashboard-donut-pair {
         gap: 9px;
+    }
+
+    .traffic-pie__group {
+        width: 100px;
+    }
+
+    .traffic-pie__annotations {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 3px;
+    }
+
+    .traffic-pie__annotation {
+        font-size: 0.58rem;
     }
 
     .traffic-pie--interactive {

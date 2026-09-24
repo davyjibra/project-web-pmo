@@ -1399,6 +1399,10 @@ foreach ($trafficStatusOrder as $trafficStatus) {
 }
 
 $trafficGradient = implode(', ', $trafficGradientStops);
+$progressGradient = sprintf(
+    '#0f8f8c 0%% %1$d%%, #e3eaee %1$d%% 100%%',
+    $dashboardOverallProgress
+);
 
 $streamOrder = ['Teknis', 'Bisnis & Nonteknis'];
 $streamTrafficGradients = [];
@@ -1556,10 +1560,11 @@ require __DIR__ . '/includes/sidebar.php';
 
                     <div class="high-level-dashboard__content">
                         <div class="dashboard-donut-pair" aria-label="Grafik ringkasan project">
+                            <div class="traffic-pie__group traffic-pie__group--progress">
                             <button
                                 type="button"
-                                class="traffic-pie traffic-pie--interactive"
-                                style="--traffic-pie: conic-gradient(<?= e($trafficGradient); ?>);"
+                                class="traffic-pie traffic-pie--interactive traffic-pie--progress"
+                                style="--traffic-pie: conic-gradient(<?= e($progressGradient); ?>);"
                                 data-dashboard-detail-trigger="all"
                                 data-dashboard-detail-label="Seluruh aktivitas"
                                 data-tooltip="Klik untuk melihat seluruh aktivitas, progres, dan PIC."
@@ -1571,7 +1576,9 @@ require __DIR__ . '/includes/sidebar.php';
                                     <span>progres keseluruhan</span>
                                 </div>
                             </button>
+                            </div>
 
+                            <div class="traffic-pie__group">
                             <button
                                 type="button"
                                 class="traffic-pie traffic-pie--interactive traffic-pie--stream"
@@ -1587,7 +1594,17 @@ require __DIR__ . '/includes/sidebar.php';
                                     <span>Teknis</span>
                                 </div>
                             </button>
+                            <div class="traffic-pie__annotations" aria-label="Rincian status aktivitas Teknis">
+                                <?php foreach ($trafficStatusOrder as $status): ?>
+                                    <?php $meta = trafficMeta($status); ?>
+                                    <span class="traffic-pie__annotation traffic-pie__annotation--<?= e($status); ?>">
+                                        <?= e($meta['label']); ?> <?= e((string) $streamStats['Teknis'][$status]); ?>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+                            </div>
 
+                            <div class="traffic-pie__group">
                             <button
                                 type="button"
                                 class="traffic-pie traffic-pie--interactive traffic-pie--stream"
@@ -1603,6 +1620,15 @@ require __DIR__ . '/includes/sidebar.php';
                                     <span>Bisnis</span>
                                 </div>
                             </button>
+                            <div class="traffic-pie__annotations" aria-label="Rincian status aktivitas Bisnis dan Nonteknis">
+                                <?php foreach ($trafficStatusOrder as $status): ?>
+                                    <?php $meta = trafficMeta($status); ?>
+                                    <span class="traffic-pie__annotation traffic-pie__annotation--<?= e($status); ?>">
+                                        <?= e($meta['label']); ?> <?= e((string) $streamStats['Bisnis & Nonteknis'][$status]); ?>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+                            </div>
                         </div>
 
                         <div class="traffic-pie__legend" aria-label="Pilih detail status">
