@@ -1353,17 +1353,6 @@ foreach ($phaseStats as &$phaseStat) {
 unset($phaseStat);
 
 /*
- * Overall progress seluruh aktivitas.
- *
- * Aktivitas hitam / belum mulai dihitung 0%.
- */
-$dashboardOverallProgress = $totalActivities > 0
-    ? (int) round(
-        $dashboardProgressTotal / $totalActivities
-    )
-    : 0;
-
-/*
  * Tabel utama hanya:
  *
  * Merah
@@ -1376,6 +1365,11 @@ $activeTrafficCount =
     $statusCounts['red']
     + $statusCounts['yellow']
     + $statusCounts['green'];
+
+/* Aktivitas Genting, Rawan, dan Aman sudah masuk tahap pelaksanaan. */
+$dashboardOverallProgress = $totalActivities > 0
+    ? (int) round(($activeTrafficCount / $totalActivities) * 100)
+    : 0;
 
 $trafficStatusOrder = ['red', 'yellow', 'green', 'black'];
 $trafficStatusColors = [
@@ -1590,7 +1584,8 @@ require __DIR__ . '/includes/sidebar.php';
                                 aria-label="Status aktivitas Teknis. Klik untuk melihat detail aktivitas Teknis."
                             >
                                 <div class="traffic-pie__center">
-                                    <strong><?= e((string) $streamStats['Teknis']['total']); ?> aktivitas</strong>
+                                    <strong><?= e((string) $streamStats['Teknis']['total']); ?></strong>
+                                    <span class="traffic-pie__activity-label">aktivitas</span>
                                     <span>Teknis</span>
                                 </div>
                             </button>
@@ -1616,7 +1611,8 @@ require __DIR__ . '/includes/sidebar.php';
                                 aria-label="Status aktivitas Bisnis dan Nonteknis. Klik untuk melihat detail aktivitas Bisnis dan Nonteknis."
                             >
                                 <div class="traffic-pie__center">
-                                    <strong><?= e((string) $streamStats['Bisnis & Nonteknis']['total']); ?> aktivitas</strong>
+                                    <strong><?= e((string) $streamStats['Bisnis & Nonteknis']['total']); ?></strong>
+                                    <span class="traffic-pie__activity-label">aktivitas</span>
                                     <span>Bisnis</span>
                                 </div>
                             </button>

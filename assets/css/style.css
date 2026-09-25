@@ -2201,13 +2201,21 @@ tbody tr:hover {
 .traffic-pie__annotation--black::before { border-left-color: #6f7f8d; }
 
 .traffic-pie--stream .traffic-pie__center strong {
-    font-size: 0.82rem;
-    white-space: nowrap;
+    font-size: 1.45rem;
+    line-height: 1;
 }
 
 .traffic-pie--stream .traffic-pie__center span {
     max-width: 70px;
-    font-size: 0.7rem;
+    margin-top: 0;
+    font-size: 0.66rem;
+    line-height: 1.1;
+}
+
+.traffic-pie--stream .traffic-pie__activity-label {
+    color: var(--text-soft);
+    font-size: 0.62rem;
+    font-weight: 700;
 }
 
 .traffic-pie__center {
